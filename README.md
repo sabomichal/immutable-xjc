@@ -19,7 +19,7 @@ To use the JAXB-RI XJC command line interface simply add the corresponding java 
            
 #### Maven
 Maven users simply add the CC-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the CC-XJC plugin with the Mojo jaxb2-maven-plugin.
-
+```xml
 <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>jaxb2-maven-plugin</artifactId>
@@ -43,3 +43,4 @@ Maven users simply add the CC-XJC plugin as a dependency to a JAXB plugin of cho
         </execution>
     </executions>
 </plugin>
+```
