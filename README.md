@@ -1,9 +1,9 @@
 ## immutable-xjc
 
-CC-XJC is a JAXB 2.0 XJC plugin for adding a copy constructor to schema derived classes. The plugin provides a '-copy-constructor' option which is enabled by adding its jar file to the XJC classpath. When enabled, the following options can be used to control the behavior of the plugin. See the examples for further information.
+IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable. The plugin provides a '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled, the following options can be used to control the behavior of the plugin. See the examples for further information.
 
--imm-builder
-The '-imm-builder' option can be used to specify the visibility of generated copy methods. It takes one argument from the list [private, package, protected, public]. This option impacts the number of generated methods. Default: private.
+#### -imm-builder
+The '-imm-builder' option can be used to generate builder like pattern utils for each schema derived class.
 
 ## Usage
 #### JAXB-RI CLI
@@ -18,7 +18,7 @@ java -cp activation-1.1.jar:\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
-Maven users simply add the CC-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the CC-XJC plugin with the Mojo jaxb2-maven-plugin.
+Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the Mojo jaxb2-maven-plugin.
 ```xml
 <plugin>
     <groupId>org.codehaus.mojo</groupId>
