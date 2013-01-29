@@ -8,15 +8,15 @@ The '-imm-builder' option can be used to specify the visibility of generated cop
 ## Usage
 #### JAXB-RI CLI
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.Driver'. The following example demonstrates a working command line for use with JDK 1.5 (assuming the needed dependencies are found in the current working directory).
-
-  java -cp activation-1.1.jar:\
+```bash
+java -cp activation-1.1.jar:\
            jaxb-api-2.0.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
            immutable-xjc-plugin-1.0.1.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
-           
+```
 #### Maven
 Maven users simply add the CC-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the CC-XJC plugin with the Mojo jaxb2-maven-plugin.
 ```xml
