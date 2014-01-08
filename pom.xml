@@ -9,8 +9,8 @@
 	<description>JAXB 2.0 Schema to Java compiler plugin for making schema derived classes immutable.</description>
 	<inceptionYear>2012</inceptionYear>
 	<organization>
-		<name>mTrust, s.r.o.</name>
-		<url>http://www.mtrust.eu</url>
+		<name>redByte, s.r.o.</name>
+		<url>http://www.redbyte.eu</url>
 	</organization>
 
 	<properties>
