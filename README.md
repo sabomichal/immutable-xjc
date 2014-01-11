@@ -26,7 +26,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
     <version>1.5</version>
     <dependencies>
         <dependency>
-            <groupId>eu.mtrust</groupId>
+            <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
             <version>1.0.1</version>
         </dependency>
