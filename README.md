@@ -1,11 +1,24 @@
 ## immutable-xjc
 
-IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable. The plugin provides a '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled, the following options can be used to control the behavior of the plugin. See the examples for further information. Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable)
+IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable:
+
+* removes all setter methods
+* creates a public constructor with all fields as parameters
+* wraps all collection like parameters with Collection.unmodifiable
+* optionally creates builder pattern utility classes
+
+Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
+
+### XJC options provided by the plugin
+The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled,  one additional option can be used to control the behavior of the plugin. See the examples for further information.
+
+#### -immutable
+The '-immutable' option enables the plugin making the XJC generated classes immutable.
 
 #### -imm-builder
 The '-imm-builder' option can be used to generate builder like pattern utils for each schema derived class.
 
-## Usage
+### Usage
 #### JAXB-RI CLI
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.Driver'. The following example demonstrates a working command line for use with JDK 1.5 (assuming the needed dependencies are found in the current working directory).
 ```bash
