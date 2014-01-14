@@ -14,7 +14,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.0.1.jar\
+           immutable-xjc-plugin-1.0.2.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -28,7 +28,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
     </dependencies>
     <executions>
