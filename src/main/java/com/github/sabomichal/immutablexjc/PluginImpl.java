@@ -157,7 +157,7 @@ public final class PluginImpl extends Plugin {
 	private JMethod addStandardConstructor(final ClassOutline clazz) {
 		JMethod ctor = clazz.implClass.getConstructor(NO_ARGS);
 		if (ctor == null) {
-			ctor = this.generateStandardConstructor(clazz);
+			ctor = this.generateStandardConstructor(clazz, JMod.PROTECTED);
 		} else {
 			this.log(Level.WARNING, "standardCtorExists", clazz.implClass.binaryName());
 		}
@@ -219,15 +219,15 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private JMethod generatePropertyConstructor(ClassOutline clazz) {
-		final JMethod ctor = generateStandardConstructor(clazz);
+		final JMethod ctor = generateStandardConstructor(clazz, JMod.PUBLIC);
 		for (FieldOutline fieldOutline : clazz.getDeclaredFields()) {
 			generatePropertyAssignment(ctor, fieldOutline);
 		}
 		return ctor;
 	}
 
-	private JMethod generateStandardConstructor(final ClassOutline clazz) {
-		final JMethod ctor = clazz.implClass.constructor(JMod.PUBLIC);
+	private JMethod generateStandardConstructor(final ClassOutline clazz, final int visibility) {
+		final JMethod ctor = clazz.implClass.constructor(visibility);
 		ctor.body().directStatement("// " + getMessage("title"));
 		ctor.body().invoke("super");
 		ctor.javadoc().add("Creates a new {@code " + clazz.implClass.name() + "} instance.");
