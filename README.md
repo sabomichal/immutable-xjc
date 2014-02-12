@@ -4,6 +4,7 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 
 * removes all setter methods
 * creates a public constructor with all fields as parameters
+* creates a protected no-arg constructor
 * wraps all collection like parameters with Collection.unmodifiable
 * optionally creates builder pattern utility classes
 
@@ -27,7 +28,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.0.2.jar\
+           immutable-xjc-plugin-1.0.3.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -41,7 +42,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
     </dependencies>
     <executions>

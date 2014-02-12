@@ -206,7 +206,7 @@ public final class PluginImpl extends Plugin {
 		JBlock block = method.body();
 		String propertyName = field.getPropertyInfo().getName(false);
 		JType javaType = getJavaType(field);
-		method.param(javaType, propertyName);
+		method.param(JMod.FINAL, javaType, propertyName);
 		block.assign(JExpr.refthis(propertyName), JExpr.ref(propertyName));
 	}
 	
