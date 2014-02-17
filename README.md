@@ -37,7 +37,6 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
 <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>jaxb2-maven-plugin</artifactId>
-    <version>1.5</version>
     <dependencies>
         <dependency>
             <groupId>com.github.sabomichal</groupId>
@@ -53,6 +52,38 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
             </goals>
             <configuration>
                 <arguments>-immutable -imm-builder</arguments>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the use of the plugin with jaxws-maven-plugin mojo.
+```xml
+<!-- TODO check if correct -->
+<plugin>
+    <groupId>org.jvnet.jax-ws-commons</groupId>
+    <artifactId>jaxws-maven-plugin</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.sabomichal</groupId>
+            <artifactId>immutable-xjc-plugin</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>wsimport</goal>
+            </goals>
+            <configuration>
+                <wsdlFiles>
+                    <wsdlFile>test.wsdl</wsdlFile>
+                </wsdlFiles>
+                <args>
+                    <arg>-B-immutable -B-imm-builder</arg>
+                </args>
             </configuration>
         </execution>
     </executions>
