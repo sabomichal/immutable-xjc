@@ -1,25 +1,19 @@
 package com.github.sabomichal.immutablexjc;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-
-import org.xml.sax.ErrorHandler;
-
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
-import com.sun.codemodel.JStatement;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -28,6 +22,20 @@ import com.sun.tools.xjc.outline.Aspect;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
+import org.xml.sax.ErrorHandler;
+
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.logging.Level;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
@@ -38,22 +46,15 @@ import com.sun.tools.xjc.outline.Outline;
 public final class PluginImpl extends Plugin {
 
 	private static final String UNSET_PREFIX = "unset";
-
 	private static final String SET_PREFIX = "set";
-
 	private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
-
 	private static final String OPTION_NAME = "immutable";
-
 	private static final JType[] NO_ARGS = new JType[0];
-
-	//TODO: improve builder of collection classes, so not the whole collection, but single elements can be added incrementaly. E.g. withLimit(List<Limit>) change to withLimit(Limit).withLimit(Limit)...
+	//TODO: improve builder of collection classes, so not the whole collection, but single elements can be added incrementally. E.g. withLimit(List<Limit>) change to withLimit(Limit).withLimit(Limit)...
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";;
 
 	private boolean success;
-	
 	private Options options;
-
 	private boolean createBuilder;
 	
 	@Override
@@ -64,24 +65,24 @@ public final class PluginImpl extends Plugin {
 		this.log(Level.INFO, "title");
 
 		for (ClassOutline clazz : model.getClasses()) {
-
-			if (this.addStandardConstructor(clazz) == null) {
-				this.log(Level.WARNING, "couldNotAddStdCtor", clazz.implClass.binaryName());
+			FieldOutline[] declaredFields = clazz.getDeclaredFields();
+			JDefinedClass implClass = clazz.implClass;
+			if (this.addStandardConstructor(implClass, declaredFields) == null) {
+				this.log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
 			}
 
-			JType[] propertyTypes = getProperties(clazz);
-			if (this.addPropertyContructor(clazz, propertyTypes) == null) {
-				this.log(Level.WARNING, "couldNotAddStdCtor", clazz.implClass.binaryName());
+			if (this.addPropertyContructor(implClass, declaredFields) == null) {
+				this.log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
 			}
 
-			this.removeSetters(clazz);
-			this.makeFinal(clazz);
-			this.makePropertiesPrivate(clazz);
-			this.makeCollectionsUnmodifiable(clazz);
+			this.removeSetters(implClass);
+			this.makeClassFinal(implClass);
+			this.makePropertiesPrivate(implClass);
+			this.makePropertiesFinal(implClass);
 			
 			if (createBuilder) {
 				if (this.addBuilderClass(clazz) == null) {
-					this.log(Level.WARNING, "couldNotAddClassBuilder", clazz.implClass.binaryName());
+					this.log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
 				}
 			}
 		}
@@ -98,119 +99,163 @@ public final class PluginImpl extends Plugin {
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		return new StringBuilder(1024).append("  -").append(OPTION_NAME).append("  :  ").append(getMessage("usage")).append(n).
+		return new StringBuilder().append("  -").append(OPTION_NAME).append("  :  ").append(getMessage("usage")).append(n).
 				append( "  " ).append( BUILDER_OPTION_NAME ).append( "       :  " ).
 		        append( getMessage( "builderUsage" ) ).append( n ).toString();
 	}
 	
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		if ( args[i].startsWith( BUILDER_OPTION_NAME ) )
-        {
+		if ( args[i].startsWith( BUILDER_OPTION_NAME ) ) {
             this.createBuilder = true;
             return 1;
         }
-		
 		return 0;
 	}
 	
 	private static String getMessage(final String key, final Object... args) {
 		return MessageFormat.format(ResourceBundle.getBundle("com/github/sabomichal/immutablexjc/PluginImpl").getString(key), args);
-
 	}
 
 	private JDefinedClass addBuilderClass(ClassOutline clazz) {
-		JDefinedClass builderClass = generateBuilderClass(clazz);
+		JDefinedClass builderClass = generateBuilderClass(clazz.implClass);
 		if (builderClass == null)  {
 			return builderClass;
 		}
 		for (FieldOutline field : clazz.getDeclaredFields()) {
+			addProperty(builderClass, field);
 			addWithMethod(builderClass, field);
 		}
-		addNewBuilder(clazz, builderClass);
-		addBuildMethod(clazz, builderClass);
+		addNewBuilder(clazz.implClass, builderClass);
+		addBuildMethod(clazz.implClass, builderClass, clazz.getDeclaredFields());
 		return builderClass;
 	}
 
-	private JMethod addBuildMethod(ClassOutline clazz, JDefinedClass builderClass) {
-		JMethod method = builderClass.method(JMod.PUBLIC, clazz.ref, "build");
-		method.body()._return(clazz.implClass.staticRef("this"));
+	private void addProperty(JDefinedClass clazz, FieldOutline field) {
+		clazz.field(JMod.PRIVATE, getJavaType(field), field.getPropertyInfo().getName(false));
+	}
+
+	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields) {
+		JMethod method = builderClass.method(JMod.PUBLIC, clazz, "build");
+		JInvocation constructorInvocation = JExpr._new(clazz);
+		for (FieldOutline field : declaredFields) {
+			constructorInvocation.arg(JExpr.ref(field.getPropertyInfo().getName(false)));
+		}
+		method.body()._return(constructorInvocation);
 		return method;
 	}
 
-	private void addNewBuilder(ClassOutline clazz, JDefinedClass builderClass) {
-		JMethod method = clazz.implClass.method(JMod.PUBLIC|JMod.STATIC, builderClass, "newBuilder");
-		method.body().directStatement(new StringBuilder("return (new ").append(clazz.implClass.fullName()).append("()).new ").append(builderClass.name()).append("();").toString());
+	private void addNewBuilder(JDefinedClass clazz, JDefinedClass builderClass) {
+		JMethod method = clazz.method(JMod.PUBLIC|JMod.STATIC, builderClass, "newBuilder");
+		method.body()._return(JExpr._new(builderClass));
 	}
 
-	private Object addPropertyContructor(ClassOutline clazz, JType[] properties) {
-		JMethod ctor = clazz.implClass.getConstructor(properties);
+	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields) {
+		JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields));
 		if (ctor == null) {
-			ctor = this.generatePropertyConstructor(clazz);
+			ctor = this.generatePropertyConstructor(clazz, declaredFields);
 		} else {
-			this.log(Level.WARNING, "standardCtorExists", clazz.implClass.binaryName());
+			this.log(Level.WARNING, "standardCtorExists");
 		}
-
 		return ctor;
 	}
 
-	private JMethod addStandardConstructor(final ClassOutline clazz) {
-		JMethod ctor = clazz.implClass.getConstructor(NO_ARGS);
+	private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields) {
+		JMethod ctor = clazz.getConstructor(NO_ARGS);
 		if (ctor == null) {
-			ctor = this.generateStandardConstructor(clazz, JMod.PROTECTED);
+			ctor = this.generateStandardConstructor(clazz, declaredFields);
 		} else {
-			this.log(Level.WARNING, "standardCtorExists", clazz.implClass.binaryName());
+			this.log(Level.WARNING, "standardCtorExists");
 		}
-
 		return ctor;
 	}
 
 	private JMethod addWithMethod(JDefinedClass builderClass, FieldOutline field) {
 		String fieldName = field.getPropertyInfo().getName(false);
 		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, new StringBuilder("with").append(Character.toUpperCase(fieldName.charAt(0))).append(fieldName.substring(1)).toString());
-		generatePropertyAssignment(method, field, builderClass.outer());
+		generatePropertyAssignment(method, field);
 		method.body()._return(JExpr.direct("this"));
 		return method;
 	}
 
-	private JDefinedClass generateBuilderClass(ClassOutline clazz) {
+	private JDefinedClass generateBuilderClass(JDefinedClass clazz) {
 		JDefinedClass builderClass = null;
+		String builderClassName = new StringBuilder(clazz.name()).append("Builder").toString();
 		try {
-			builderClass = clazz.implClass._class(JMod.PUBLIC, new StringBuilder(clazz.implClass.name()).append("Builder").toString());
-			return builderClass;
+			builderClass = clazz._class(JMod.PUBLIC|JMod.STATIC, builderClassName);
 		} catch (JClassAlreadyExistsException e) {
-			//suppress
+			this.log(Level.WARNING, "builderClassExists", builderClassName);
 		}
 		return builderClass;
 	}
 
-	private void generateCollectionGetter(ClassOutline clazz, FieldOutline field, final JMethod getter) {
-		JMethod newMethod = clazz.implClass.method(getter.mods().getValue(), getter.type(), getter.name());
-		JBlock block = newMethod.body();
-		for (Object o  : getter.body().getContents()) {
-			if (o instanceof JStatement) {
-				// can not use instanceof since JReturn is package visible only
-				if ("com.sun.codemodel.JReturn".equals(o.getClass().getName())) {
-					block.directStatement("// " + getMessage("title"));
-					block._return(JExpr.cast(getter.type(), clazz.implClass.owner().ref(Collections.class).staticInvoke("unmodifiableList").arg(JExpr.ref(field.getPropertyInfo().getName(false)))));
-				} else {
-					//JConditional fieldNotNull = block._if(JExpr.ref(field.getPropertyInfo().getName(false)).eq(JExpr._null()));
-					//fieldNotNull._then().assign(JExpr.ref(field.getPropertyInfo().getName(false)), JExpr._new(field.getRawType()));
-					block.add((JStatement) o);
-				}
-			}
+	private void replaceCollectionGetter(FieldOutline field, final JMethod getter) {
+		JDefinedClass clazz = field.parent().implClass;
+		// remove the old getter
+		clazz.methods().remove(getter);
+		// and create a new one
+		JMethod newGetter = field.parent().implClass.method(getter.mods().getValue(), getter.type(), getter.name());
+		JFieldVar fieldVar = clazz.fields().get(field.getPropertyInfo().getName(false));
+		JBlock block = newGetter.body();
+		block._return(fieldVar);
+		getter.javadoc().append("Returns unmodifiable collection.");
+	}
+
+	private void generatePropertyAssignment(final JMethod method, FieldOutline fieldOutline) {
+		generatePropertyAssignment(method, fieldOutline, false);
+	}
+
+	private void generatePropertyAssignment(final JMethod method, FieldOutline fieldOutline, boolean wrapUnmodifiable) {
+		JBlock block = method.body();
+		JCodeModel codeModel = fieldOutline.parent().implClass.owner();
+		String fieldName = fieldOutline.getPropertyInfo().getName(false);
+		JType javaType = getJavaType(fieldOutline);
+		JVar param = method.param(JMod.FINAL, javaType, fieldName);
+		if (fieldOutline.getPropertyInfo().isCollection() && wrapUnmodifiable) {
+			JConditional conditional = block._if(param.eq(JExpr._null()));
+			conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
+			conditional._else().assign(JExpr.refthis(fieldName), getUnmodifiableWrappedExpression(codeModel, param));
+			replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+		} else {
+			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
 	}
 
-	private void generatePropertyAssignment(final JMethod method, FieldOutline field) {
-		JBlock block = method.body();
-		String propertyName = field.getPropertyInfo().getName(false);
-		JType javaType = getJavaType(field);
-		method.param(JMod.FINAL, javaType, propertyName);
-		block.assign(JExpr.refthis(propertyName), JExpr.ref(propertyName));
+	private JExpression getUnmodifiableWrappedExpression(JCodeModel codeModel, JVar param) {
+		if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableCollection").arg(param);
+		} else if (param.type().erasure().equals(codeModel.ref(List.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableList").arg(param);
+		} else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableMap").arg(param);
+		} else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableSet").arg(param);
+		} else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableSortedMap").arg(param);
+		} else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("unmodifiableSortedSet").arg(param);
+		}
+		return param;
 	}
-	
-	private void generatePropertyAssignment(final JMethod method, FieldOutline field, JClass outerClass) {
+
+	private JExpression getEmptyCollectionExpression(JCodeModel codeModel, JVar param) {
+		if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("emptyList");
+		} else if (param.type().erasure().equals(codeModel.ref(List.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("emptyList");
+		} else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("emptyMap");
+		} else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
+			return codeModel.ref(Collections.class).staticInvoke("emptySet");
+		} else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
+			return JExpr._new(codeModel.ref(SortedMap.class));
+		} else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
+			return JExpr._new(codeModel.ref(SortedSet.class));
+		}
+		return param;
+	}
+
+	private void generateOuterPropertyAssignment(final JMethod method, FieldOutline field, JClass outerClass) {
 		JBlock block = method.body();
 		String propertyName = field.getPropertyInfo().getName(false);
 		JType javaType = getJavaType(field);
@@ -218,29 +263,51 @@ public final class PluginImpl extends Plugin {
 		block.assign(outerClass.staticRef("this").ref(propertyName), JExpr.ref(propertyName));
 	}
 
-	private JMethod generatePropertyConstructor(ClassOutline clazz) {
-		final JMethod ctor = generateStandardConstructor(clazz, JMod.PUBLIC);
-		for (FieldOutline fieldOutline : clazz.getDeclaredFields()) {
-			generatePropertyAssignment(ctor, fieldOutline);
+	private void generateDefaultPropertyAssignment(JMethod method, FieldOutline fieldOutline) {
+		JBlock block = method.body();
+		String propertyName = fieldOutline.getPropertyInfo().getName(false);
+		block.assign(JExpr.refthis(propertyName), defaultValue(getJavaType(fieldOutline), fieldOutline));
+	}
+
+	private JExpression defaultValue(JType javaType, FieldOutline fieldOutline) {
+		if (javaType.isPrimitive()) {
+			if (fieldOutline.parent().parent().getCodeModel().BOOLEAN.equals(javaType)) {
+				return JExpr.lit(false);
+			} else {
+				return JExpr.lit(0);
+			}
+		}
+		return JExpr._null();
+	}
+
+	private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields) {
+		final JMethod ctor = createConstructor(clazz, JMod.PUBLIC);
+		ctor.body().invoke("super");
+		for (FieldOutline fieldOutline : declaredFields) {
+			generatePropertyAssignment(ctor, fieldOutline, true);
 		}
 		return ctor;
 	}
 
-	private JMethod generateStandardConstructor(final ClassOutline clazz, final int visibility) {
-		final JMethod ctor = clazz.implClass.constructor(visibility);
+	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields) {
+		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);;
+		ctor.javadoc().add("Used by JAX-B");
+		for (FieldOutline fieldOutline : declaredFields) {
+			generateDefaultPropertyAssignment(ctor, fieldOutline);
+		}
+		return ctor;
+	}
+
+	private JMethod createConstructor(final JDefinedClass clazz, final int visibility) {
+		final JMethod ctor = clazz.constructor(visibility);
 		ctor.body().directStatement("// " + getMessage("title"));
-		ctor.body().invoke("super");
-		ctor.javadoc().add("Creates a new {@code " + clazz.implClass.name() + "} instance.");
 		return ctor;
 	}
 
 	private JType getJavaType(FieldOutline field) {
-		JType javaType = null;
+		JType javaType;
 		if (field.getPropertyInfo().isCollection()) {
 			javaType = field.getRawType();
-			if (javaType.isArray()) {
-			} else {
-			}
 		} else {
 			CTypeInfo typeInfo = field.getPropertyInfo().ref().iterator().next();
 			javaType = typeInfo.toType(field.parent().parent(), Aspect.IMPLEMENTATION);
@@ -248,18 +315,18 @@ public final class PluginImpl extends Plugin {
 		return javaType;
 	}
 	
-	private JType[] getProperties(ClassOutline clazz) {
-		JType[] propertyTypes = new JType[clazz.getDeclaredFields().length];
+	private JType[] getFieldTypes(FieldOutline[] declaredFields) {
+		JType[] fieldTypes = new JType[declaredFields.length];
 		int i = 0;
-		for (FieldOutline fieldOutline : clazz.getDeclaredFields()) {
-			propertyTypes[i++] = fieldOutline.getPropertyInfo().baseType;
+		for (FieldOutline fieldOutline : declaredFields) {
+			fieldTypes[i++] = fieldOutline.getPropertyInfo().baseType;
 		}
-		return propertyTypes;
+		return fieldTypes;
 	}
 	
-	private JMethod getPropertyGetter(final FieldOutline f) {
-		final JDefinedClass clazz = f.parent().implClass;
-		final String name = f.getPropertyInfo().getName(true);
+	private JMethod getGetterProperty(final FieldOutline fieldOutline) {
+		final JDefinedClass clazz = fieldOutline.parent().implClass;
+		final String name = fieldOutline.getPropertyInfo().getName(true);
 		JMethod getter = clazz.getMethod("get" + name, NO_ARGS);
 
 		if (getter == null) {
@@ -291,28 +358,24 @@ public final class PluginImpl extends Plugin {
 		}
 	}
 
-	private void makeCollectionsUnmodifiable(ClassOutline clazz) {
-		for (FieldOutline field : clazz.getDeclaredFields()) {
-			final JMethod getter = this.getPropertyGetter(field);
-			if (field.getPropertyInfo().isCollection()) {
-				clazz.implClass.methods().remove(getter);
-				this.generateCollectionGetter(clazz, field, getter);
-			}
-		}
+	private void makeClassFinal(JDefinedClass clazz) {
+		clazz.mods().setFinal(true);
 	}
 
-	private void makeFinal(ClassOutline clazz) {
-		clazz.implClass.mods().setFinal(true);
-	}
-
-	private void makePropertiesPrivate(ClassOutline clazz) {
-		for (JFieldVar field : clazz.implClass.fields().values()) {
+	private void makePropertiesPrivate(JDefinedClass clazz) {
+		for (JFieldVar field : clazz.fields().values()) {
 			field.mods().setPrivate();
 		}
 	}
 
-	private void removeSetters(ClassOutline clazz) {
-		Collection<JMethod> methods = clazz.implClass.methods();
+	private void makePropertiesFinal(JDefinedClass clazz) {
+		for (JFieldVar field : clazz.fields().values()) {
+			field.mods().setFinal(true);
+		}
+	}
+
+	private void removeSetters(JDefinedClass clazz) {
+		Collection<JMethod> methods = clazz.methods();
 		Iterator<JMethod> it = methods.iterator();
 		while (it.hasNext()) {
 			JMethod method = it.next();
