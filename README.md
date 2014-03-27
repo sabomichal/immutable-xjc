@@ -5,7 +5,8 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 * removes all setter methods
 * creates a public constructor with all fields as parameters
 * creates a protected no-arg constructor
-* wraps all collection like parameters with Collection.unmodifiable
+* marks all fields within a class as final
+* wraps all collection like parameters with Collections.unmodifiable or Collections.empty if null
 * optionally creates builder pattern utility classes
 
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
@@ -28,7 +29,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.0.3.jar\
+           immutable-xjc-plugin-1.0.4.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -41,7 +42,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -68,7 +69,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
     </dependencies>
     <executions>
