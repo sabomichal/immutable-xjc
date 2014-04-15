@@ -61,7 +61,6 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
 
 IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the use of the plugin with jaxws-maven-plugin mojo.
 ```xml
-<!-- TODO check if correct -->
 <plugin>
     <groupId>org.jvnet.jax-ws-commons</groupId>
     <artifactId>jaxws-maven-plugin</artifactId>

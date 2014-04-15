@@ -5,7 +5,6 @@ import org.junit.Test;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -20,8 +19,7 @@ public class TestImmutableXjc {
 	public void testUnmarshall() throws Exception {
 		JAXBContext jc = JAXBContext.newInstance(Shiporder.class);
 		Unmarshaller unmarshaller = jc.createUnmarshaller();
-		File xml = new File("src/test/resources/orders.xml");
-		Shiporder orders = (Shiporder) unmarshaller.unmarshal(xml);
+		Shiporder orders = (Shiporder) unmarshaller.unmarshal(this.getClass().getResourceAsStream("/orders.xml"));
 		assertNotNull(orders.getItem());
 		assertNotNull(orders);
 	}
