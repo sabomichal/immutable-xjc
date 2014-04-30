@@ -34,7 +34,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.0.4.jar\
+           immutable-xjc-plugin-1.0.5.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -47,7 +47,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
         </dependency>
     </dependencies>
     <executions>
@@ -73,7 +73,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
         </dependency>
     </dependencies>
     <executions>
