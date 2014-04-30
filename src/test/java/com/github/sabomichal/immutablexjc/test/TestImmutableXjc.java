@@ -26,15 +26,15 @@ public class TestImmutableXjc {
 
 	@Test
 	public void testMarshall() throws Exception {
-		Shiporder orders = Shiporder.newBuilder()
+		Shiporder orders = Shiporder.shiporderBuilder()
 				.withOrderid("123")
-				.withShipto(Shiporder.Shipto.newBuilder()
+				.withShipto(Shiporder.Shipto.shiptoBuilder()
 						.withAddress("address")
 						.withCity("city")
 						.withCountry("country")
 						.withName("name").build())
 				.withOrderperson("person")
-				.withItem(Arrays.asList(Shiporder.Item.newBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build()))
+				.withItem(Arrays.asList(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build()))
 				.build();
 		assertNotNull(orders);
 

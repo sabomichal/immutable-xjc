@@ -3,6 +3,7 @@
 IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable:
 
 * removes all setter methods
+* marks class final
 * creates a public constructor with all fields as parameters
 * creates a protected no-arg constructor
 * marks all fields within a class as final
@@ -10,6 +11,10 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 * optionally creates builder pattern utility classes
 
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
+
+### Release notes
+#### 1.0.5
+* xsd polymorphism compilation problems fixed
 
 ### XJC options provided by the plugin
 The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled,  one additional option can be used to control the behavior of the plugin. See the examples for further information.

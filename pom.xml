@@ -255,7 +255,7 @@
 								<configuration>
 									<wsdlDirectory>${project.basedir}/src/test/wsdl</wsdlDirectory>
 									<wsdlFiles>
-										<wsdlFile>calculator.wsdl</wsdlFile>
+										<wsdlFile>test.wsdl</wsdlFile>
 									</wsdlFiles>
 									<args>
 										<arg>-B-immutable -B-imm-builder</arg>

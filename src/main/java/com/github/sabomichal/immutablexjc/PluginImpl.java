@@ -24,8 +24,11 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 
+import java.beans.Introspector;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -51,46 +54,62 @@ public final class PluginImpl extends Plugin {
 	private static final String OPTION_NAME = "immutable";
 	private static final JType[] NO_ARGS = new JType[0];
 	//TODO: improve builder of collection classes, so not the whole collection, but single elements can be added incrementally. E.g. withLimit(List<Limit>) change to withLimit(Limit).withLimit(Limit)...
-	private static final String BUILDER_OPTION_NAME = "-imm-builder";;
+	private static final String BUILDER_OPTION_NAME = "-imm-builder";
 
-	private boolean success;
-	private Options options;
 	private boolean createBuilder;
+	private Options options;
 	
 	@Override
 	public boolean run(final Outline model, final Options options, final ErrorHandler errorHandler) {
-		this.success = true;
+		boolean success = true;
 		this.options = options;
 
 		this.log(Level.INFO, "title");
 
 		for (ClassOutline clazz : model.getClasses()) {
-			FieldOutline[] declaredFields = clazz.getDeclaredFields();
 			JDefinedClass implClass = clazz.implClass;
-			if (this.addStandardConstructor(implClass, declaredFields) == null) {
-				this.log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
+
+			FieldOutline[] declaredFields = clazz.getDeclaredFields();
+			FieldOutline[] superclassFields = getSuperclassFields(clazz);
+
+			int declaredFieldsLength = declaredFields != null ? declaredFields.length : 0;
+			int superclassFieldsLength = superclassFields != null ? superclassFields.length : 0;
+			if (declaredFieldsLength + superclassFieldsLength > 0) {
+				if (addStandardConstructor(implClass, declaredFields, superclassFields) == null) {
+					log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
+				}
 			}
 
-			if (this.addPropertyContructor(implClass, declaredFields) == null) {
-				this.log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
+			if (declaredFieldsLength > 0) {
+				if (addPropertyContructor(implClass, declaredFields, superclassFields) == null) {
+					log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
+				}
 			}
 
-			this.removeSetters(implClass);
-			this.makeClassFinal(implClass);
-			this.makePropertiesPrivate(implClass);
-			this.makePropertiesFinal(implClass);
+			makeClassFinal(implClass);
+			removeSetters(implClass);
+			makePropertiesPrivate(implClass);
+			makePropertiesFinal(implClass);
 			
 			if (createBuilder) {
-				if (this.addBuilderClass(clazz) == null) {
-					this.log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
+				if (addBuilderClass(clazz, declaredFields, superclassFields) == null) {
+					log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
 				}
 			}
 		}
 
+		// if superclass is a JAXB bound class, revert setting it final
+		for (ClassOutline clazz : model.getClasses()) {
+			boolean hasJaxbBoundSuperclass = clazz.getSuperClass() != null;
+			if (hasJaxbBoundSuperclass) {
+				clazz.getSuperClass().implClass.mods().setFinal(false);
+			}
+		}
+
 		this.options = null;
-		return this.success;
+		return success;
 	}
-	
+
 	@Override
 	public String getOptionName() {
 		return OPTION_NAME;
@@ -117,17 +136,21 @@ public final class PluginImpl extends Plugin {
 		return MessageFormat.format(ResourceBundle.getBundle("com/github/sabomichal/immutablexjc/PluginImpl").getString(key), args);
 	}
 
-	private JDefinedClass addBuilderClass(ClassOutline clazz) {
+	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JDefinedClass builderClass = generateBuilderClass(clazz.implClass);
 		if (builderClass == null)  {
-			return builderClass;
+			return null;
 		}
-		for (FieldOutline field : clazz.getDeclaredFields()) {
+		for (FieldOutline field : declaredFields) {
+			addProperty(builderClass, field);
+			addWithMethod(builderClass, field);
+		}
+		for (FieldOutline field : superclassFields) {
 			addProperty(builderClass, field);
 			addWithMethod(builderClass, field);
 		}
 		addNewBuilder(clazz.implClass, builderClass);
-		addBuildMethod(clazz.implClass, builderClass, clazz.getDeclaredFields());
+		addBuildMethod(clazz.implClass, builderClass, declaredFields, superclassFields);
 		return builderClass;
 	}
 
@@ -135,10 +158,13 @@ public final class PluginImpl extends Plugin {
 		clazz.field(JMod.PRIVATE, getJavaType(field), field.getPropertyInfo().getName(false));
 	}
 
-	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields) {
+	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod method = builderClass.method(JMod.PUBLIC, clazz, "build");
 		JInvocation constructorInvocation = JExpr._new(clazz);
 		for (FieldOutline field : declaredFields) {
+			constructorInvocation.arg(JExpr.ref(field.getPropertyInfo().getName(false)));
+		}
+		for (FieldOutline field : superclassFields) {
 			constructorInvocation.arg(JExpr.ref(field.getPropertyInfo().getName(false)));
 		}
 		method.body()._return(constructorInvocation);
@@ -146,24 +172,24 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void addNewBuilder(JDefinedClass clazz, JDefinedClass builderClass) {
-		JMethod method = clazz.method(JMod.PUBLIC|JMod.STATIC, builderClass, "newBuilder");
+		JMethod method = clazz.method(JMod.PUBLIC|JMod.STATIC, builderClass, Introspector.decapitalize(clazz.name()) + "Builder");
 		method.body()._return(JExpr._new(builderClass));
 	}
 
-	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields) {
+	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields));
 		if (ctor == null) {
-			ctor = this.generatePropertyConstructor(clazz, declaredFields);
+			ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields);
 		} else {
 			this.log(Level.WARNING, "standardCtorExists");
 		}
 		return ctor;
 	}
 
-	private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields) {
+	private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod ctor = clazz.getConstructor(NO_ARGS);
 		if (ctor == null) {
-			ctor = this.generateStandardConstructor(clazz, declaredFields);
+			ctor = this.generateStandardConstructor(clazz, declaredFields, superclassFields);
 		} else {
 			this.log(Level.WARNING, "standardCtorExists");
 		}
@@ -209,8 +235,7 @@ public final class PluginImpl extends Plugin {
 		JBlock block = method.body();
 		JCodeModel codeModel = fieldOutline.parent().implClass.owner();
 		String fieldName = fieldOutline.getPropertyInfo().getName(false);
-		JType javaType = getJavaType(fieldOutline);
-		JVar param = method.param(JMod.FINAL, javaType, fieldName);
+		JVar param = generateMethodParameter(method, fieldOutline);
 		if (fieldOutline.getPropertyInfo().isCollection() && wrapUnmodifiable) {
 			JConditional conditional = block._if(param.eq(JExpr._null()));
 			conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
@@ -219,6 +244,12 @@ public final class PluginImpl extends Plugin {
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
+	}
+
+	private JVar generateMethodParameter(final JMethod method, FieldOutline fieldOutline) {
+		String fieldName = fieldOutline.getPropertyInfo().getName(false);
+		JType javaType = getJavaType(fieldOutline);
+		return method.param(JMod.FINAL, javaType, fieldName);
 	}
 
 	private JExpression getUnmodifiableWrappedExpression(JCodeModel codeModel, JVar param) {
@@ -280,18 +311,30 @@ public final class PluginImpl extends Plugin {
 		return JExpr._null();
 	}
 
-	private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields) {
+	private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		final JMethod ctor = createConstructor(clazz, JMod.PUBLIC);
-		ctor.body().invoke("super");
+		if (superclassFields.length > 0) {
+			JInvocation superInvocation = ctor.body().invoke("super");
+			for (FieldOutline fieldOutline : superclassFields) {
+				superInvocation.arg(JExpr.ref(fieldOutline.getPropertyInfo().getName(false)));
+				generateMethodParameter(ctor, fieldOutline);
+			}
+		}
 		for (FieldOutline fieldOutline : declaredFields) {
 			generatePropertyAssignment(ctor, fieldOutline, true);
 		}
 		return ctor;
 	}
 
-	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields) {
+	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);;
 		ctor.javadoc().add("Used by JAX-B");
+		if (superclassFields.length > 0) {
+			JInvocation superInvocation = ctor.body().invoke("super");
+			for (FieldOutline fieldOutline : superclassFields) {
+				superInvocation.arg(defaultValue(getJavaType(fieldOutline), fieldOutline));
+			}
+		}
 		for (FieldOutline fieldOutline : declaredFields) {
 			generateDefaultPropertyAssignment(ctor, fieldOutline);
 		}
@@ -384,5 +427,15 @@ public final class PluginImpl extends Plugin {
 				it.remove();
 			}
 		}
+	}
+
+	private FieldOutline[] getSuperclassFields(ClassOutline clazz) {
+		List<FieldOutline> superclassFields = new ArrayList<FieldOutline>();
+		ClassOutline superclass = clazz.getSuperClass();
+		while (superclass != null) {
+			superclassFields.addAll(Arrays.asList(superclass.getDeclaredFields()));
+			superclass = superclass.getSuperClass();
+		}
+		return superclassFields.toArray(new FieldOutline[0]);
 	}
 }
