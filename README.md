@@ -16,6 +16,7 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 #### 1.1
 * complex xsd scenarios fixed
 * boolean type default values fixed
+
 #### 1.0.5
 * xsd polymorphism compilation problems fixed
 
@@ -41,7 +42,7 @@ java -cp activation-1.1.jar:\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
-Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the Mojo jaxb2-maven-plugin.
+Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *jaxb2-maven-plugin*.
 ```xml
 <plugin>
     <groupId>org.codehaus.mojo</groupId>
@@ -67,7 +68,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
 </plugin>
 ```
 
-IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the use of the plugin with jaxws-maven-plugin mojo.
+IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the use of the plugin with *jaxws-maven-plugin* mojo.
 ```xml
 <plugin>
     <groupId>org.jvnet.jax-ws-commons</groupId>
@@ -97,7 +98,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
     </executions>
 </plugin>
 ```
-Next example demonstrates the usage with CXF maven plugin
+Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* mojo.
 ```xml
 <plugin>
     <groupId>org.apache.cxf</groupId>
