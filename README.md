@@ -68,7 +68,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
 </plugin>
 ```
 
-IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the use of the plugin with *jaxws-maven-plugin* mojo.
+IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the usage of the plugin with *jaxws-maven-plugin* mojo.
 ```xml
 <plugin>
     <groupId>org.jvnet.jax-ws-commons</groupId>
@@ -103,7 +103,6 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
 <plugin>
     <groupId>org.apache.cxf</groupId>
     <artifactId>cxf-codegen-plugin</artifactId>
-    <version>2.7.8</version>
     <dependencies>
         <dependency>
             <groupId>com.github.sabomichal</groupId>
