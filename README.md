@@ -13,6 +13,9 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
 
 ### Release notes
+#### 1.1
+* complex xsd scenarios fixed
+* boolean type default values fixed
 #### 1.0.5
 * xsd polymorphism compilation problems fixed
 
@@ -34,7 +37,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.0.5.jar\
+           immutable-xjc-plugin-1.1.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -47,7 +50,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.5</version>
+            <version>1.1</version>
         </dependency>
     </dependencies>
     <executions>
@@ -73,7 +76,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.0.5</version>
+            <version>1.1</version>
         </dependency>
     </dependencies>
     <executions>
@@ -89,6 +92,40 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
                 <args>
                     <arg>-B-immutable -B-imm-builder</arg>
                 </args>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+Next example demonstrates the usage with CXF maven plugin
+```xml
+<plugin>
+    <groupId>org.apache.cxf</groupId>
+    <artifactId>cxf-codegen-plugin</artifactId>
+    <version>2.7.8</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.sabomichal</groupId>
+            <artifactId>immutable-xjc-plugin</artifactId>
+            <version>1.1</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>wsdl2java</goal>
+            </goals>
+            <configuration>
+                <wsdlOptions>
+                    <wsdlOption>
+                        <wsdl>${basedir}/wsdl/test.wsdl</wsdl>
+                        <extraargs>
+                            <extraarg>-xjc-immutable</extraarg>
+                            <extraarg>-xjc-imm-builder</extraarg>
+                        </extraargs>
+                    </wsdlOption>
+                </wsdlOptions>
             </configuration>
         </execution>
     </executions>

@@ -8,10 +8,11 @@
 				<xs:element name="shipto">
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="name" type="xs:string"/>
 							<xs:element name="address" type="xs:string"/>
 							<xs:element name="city" type="xs:string"/>
 							<xs:element name="country" type="xs:string"/>
+							<xs:element name="name" type="xs:string"/>
+							<xs:element name="enabled" type="xs:boolean"/>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -55,6 +56,7 @@
 					<xs:element name="address" type="xs:string"/>
 					<xs:element name="city" type="xs:string"/>
 					<xs:element name="country" type="xs:string"/>
+					<xs:element name="enabled" type="xs:boolean"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>

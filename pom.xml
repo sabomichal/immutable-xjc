@@ -252,13 +252,47 @@
 									<goal>wsimport-test</goal>
 								</goals>
 								<configuration>
+									<sourceDestDir>${project.build.directory}/generated-test-sources</sourceDestDir>
 									<wsdlDirectory>${project.basedir}/src/test/wsdl</wsdlDirectory>
 									<wsdlFiles>
-										<wsdlFile>test.wsdl</wsdlFile>
+										<wsdlFile>basic.wsdl</wsdlFile>
 									</wsdlFiles>
 									<args>
 										<arg>-B-immutable -B-imm-builder</arg>
 									</args>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.cxf</groupId>
+						<artifactId>cxf-codegen-plugin</artifactId>
+						<version>2.7.8</version>
+						<dependencies>
+							<dependency>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<version>${project.version}</version>
+								<optional>true</optional>
+							</dependency>
+						</dependencies>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>wsdl2java</goal>
+								</goals>
+								<configuration>
+									<sourceRoot>${project.build.directory}/generated-test-sources</sourceRoot>
+									<wsdlOptions>
+										<wsdlOption>
+											<wsdl>${basedir}/src/test/wsdl/complex.wsdl</wsdl>
+											<extraargs>
+												<extraarg>-xjc-immutable</extraarg>
+												<extraarg>-xjc-imm-builder</extraarg>
+											</extraargs>
+										</wsdlOption>
+									</wsdlOptions>
 								</configuration>
 							</execution>
 						</executions>
