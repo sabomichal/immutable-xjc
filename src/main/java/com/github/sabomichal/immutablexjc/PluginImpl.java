@@ -91,9 +91,11 @@ public final class PluginImpl extends Plugin {
 			makePropertiesFinal(implClass);
 			
 			if (createBuilder) {
+                            if (!clazz.implClass.isAbstract()){
 				if (addBuilderClass(clazz, declaredFields, superclassFields) == null) {
 					log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
 				}
+                            }
 			}
 		}
 
