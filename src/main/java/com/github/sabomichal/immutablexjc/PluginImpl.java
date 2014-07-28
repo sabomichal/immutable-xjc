@@ -150,7 +150,7 @@ public final class PluginImpl extends Plugin {
 			addProperty(builderClass, field);
 			addWithMethod(builderClass, field);
 		}
-		addNewBuilder(clazz.implClass, builderClass);
+		addNewBuilder(clazz, builderClass);
 		addBuildMethod(clazz.implClass, builderClass, declaredFields, superclassFields);
 		return builderClass;
 	}
@@ -172,9 +172,19 @@ public final class PluginImpl extends Plugin {
 		return method;
 	}
 
-	private void addNewBuilder(JDefinedClass clazz, JDefinedClass builderClass) {
-		JMethod method = clazz.method(JMod.PUBLIC|JMod.STATIC, builderClass, Introspector.decapitalize(clazz.name()) + "Builder");
-		method.body()._return(JExpr._new(builderClass));
+	private void addNewBuilder(ClassOutline clazz, JDefinedClass builderClass) {
+                boolean superClassWithSameName = false;
+                ClassOutline superclass = clazz.getSuperClass();
+                while (superclass != null) {
+                    if (superclass.implClass.name().equals(clazz.implClass.name())) {
+                        superClassWithSameName = true;
+                    }
+                    superclass = superclass.getSuperClass();
+                }
+                if (!superClassWithSameName){
+                    JMethod method = clazz.implClass.method(JMod.PUBLIC|JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+                    method.body()._return(JExpr._new(builderClass));
+                }
 	}
 
 	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
