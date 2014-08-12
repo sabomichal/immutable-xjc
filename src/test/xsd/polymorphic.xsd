@@ -1,0 +1,38 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:complexType name="polymorphic">
+		<xs:sequence>
+			<xs:choice maxOccurs="unbounded">
+				<xs:element name="doLaundry" type="doLaundry" />
+				<xs:element name="washCar" type="washCar" />
+				<xs:element name="tidyBedroom" type="tidyBedroom" />
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType abstract="true" name="Task">
+		<xs:attribute name="cost" type="xs:int" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="doLaundry">
+		<xs:complexContent>
+			<xs:extension base="Task">
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="washCar">
+		<xs:complexContent>
+			<xs:extension base="Task">
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="tidyBedroom">
+		<xs:complexContent>
+			<xs:extension base="Task">
+				<xs:attribute name="experiencePoints" type="xs:int" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+</xs:schema>

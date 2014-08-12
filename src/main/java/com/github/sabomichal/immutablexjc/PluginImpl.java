@@ -1,7 +1,6 @@
 package com.github.sabomichal.immutablexjc;
 
 import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
@@ -89,21 +88,22 @@ public final class PluginImpl extends Plugin {
 			removeSetters(implClass);
 			makePropertiesPrivate(implClass);
 			makePropertiesFinal(implClass);
-			
+
 			if (createBuilder) {
-                            if (!clazz.implClass.isAbstract()){
-				if (addBuilderClass(clazz, declaredFields, superclassFields) == null) {
-					log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
+				if (!clazz.implClass.isAbstract()) {
+					if (addBuilderClass(clazz, declaredFields, superclassFields) == null) {
+						log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
+					}
 				}
-                            }
 			}
 		}
 
-		// if superclass is a JAXB bound class, revert setting it final
+		// if superclass is a JAXB bound class or an abstract class, revert setting it final
 		for (ClassOutline clazz : model.getClasses()) {
-			boolean hasJaxbBoundSuperclass = clazz.getSuperClass() != null;
-			if (hasJaxbBoundSuperclass) {
+			if (clazz.getSuperClass() != null) {
 				clazz.getSuperClass().implClass.mods().setFinal(false);
+			} else if (clazz.implClass.isAbstract()) {
+				clazz.implClass.mods().setFinal(false);
 			}
 		}
 
@@ -119,9 +119,7 @@ public final class PluginImpl extends Plugin {
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		return new StringBuilder().append("  -").append(OPTION_NAME).append("  :  ").append(getMessage("usage")).append(n).
-				append( "  " ).append( BUILDER_OPTION_NAME ).append( "       :  " ).
-		        append( getMessage( "builderUsage" ) ).append( n ).toString();
+		return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n;
 	}
 	
 	@Override
@@ -209,7 +207,7 @@ public final class PluginImpl extends Plugin {
 
 	private JMethod addWithMethod(JDefinedClass builderClass, FieldOutline field) {
 		String fieldName = field.getPropertyInfo().getName(false);
-		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, new StringBuilder("with").append(Character.toUpperCase(fieldName.charAt(0))).append(fieldName.substring(1)).toString());
+		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
 		generatePropertyAssignment(method, field);
 		method.body()._return(JExpr.direct("this"));
 		return method;
@@ -217,7 +215,7 @@ public final class PluginImpl extends Plugin {
 
 	private JDefinedClass generateBuilderClass(JDefinedClass clazz) {
 		JDefinedClass builderClass = null;
-		String builderClassName = new StringBuilder(clazz.name()).append("Builder").toString();
+		String builderClassName = clazz.name() + "Builder";
 		try {
 			builderClass = clazz._class(JMod.PUBLIC|JMod.STATIC, builderClassName);
 		} catch (JClassAlreadyExistsException e) {
@@ -297,14 +295,6 @@ public final class PluginImpl extends Plugin {
 		return param;
 	}
 
-	private void generateOuterPropertyAssignment(final JMethod method, FieldOutline field, JClass outerClass) {
-		JBlock block = method.body();
-		String propertyName = field.getPropertyInfo().getName(false);
-		JType javaType = getJavaType(field);
-		method.param(javaType, propertyName);
-		block.assign(outerClass.staticRef("this").ref(propertyName), JExpr.ref(propertyName));
-	}
-
 	private void generateDefaultPropertyAssignment(JMethod method, FieldOutline fieldOutline) {
 		JBlock block = method.body();
 		String propertyName = fieldOutline.getPropertyInfo().getName(false);
@@ -340,7 +330,7 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
-		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);;
+		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);
 		ctor.javadoc().add("Used by JAX-B");
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
@@ -453,6 +443,6 @@ public final class PluginImpl extends Plugin {
 		for (ClassOutline classOutline : superclasses) {
 			superclassFields.addAll(Arrays.asList(classOutline.getDeclaredFields()));
 		}
-		return superclassFields.toArray(new FieldOutline[0]);
+		return superclassFields.toArray(new FieldOutline[superclassFields.size()]);
 	}
 }
