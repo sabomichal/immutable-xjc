@@ -1,6 +1,7 @@
 package com.github.sabomichal.immutablexjc;
 
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
@@ -28,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +48,6 @@ import java.util.logging.Level;
  */
 public final class PluginImpl extends Plugin {
 
-	// TODO improve builder of collection classes, so not the whole collection, but single elements can be added incrementally. E.g. withLimit(List<Limit>) change to withLimit(Limit).withLimit(Limit)...
-	// TODO refactor code
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
 	private static final String UNSET_PREFIX = "unset";
 	private static final String SET_PREFIX = "set";
@@ -54,6 +55,7 @@ public final class PluginImpl extends Plugin {
 	private static final String OPTION_NAME = "immutable";
 	private static final JType[] NO_ARGS = new JType[0];
 
+	private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
 	private boolean createBuilder;
 	private Options options;
 	
@@ -131,8 +133,8 @@ public final class PluginImpl extends Plugin {
 		return 0;
 	}
 	
-	private static String getMessage(final String key, final Object... args) {
-		return MessageFormat.format(ResourceBundle.getBundle("com/github/sabomichal/immutablexjc/PluginImpl").getString(key), args);
+	private String getMessage(final String key, final Object... args) {
+		return MessageFormat.format(resourceBundle.getString(key), args);
 	}
 
 	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
@@ -143,18 +145,29 @@ public final class PluginImpl extends Plugin {
 		for (FieldOutline field : declaredFields) {
 			addProperty(builderClass, field);
 			addWithMethod(builderClass, field);
+			if (field.getPropertyInfo().isCollection()) {
+				addAddMethod(builderClass, field);
+			}
 		}
 		for (FieldOutline field : superclassFields) {
 			addProperty(builderClass, field);
 			addWithMethod(builderClass, field);
+			if (field.getPropertyInfo().isCollection()) {
+				addAddMethod(builderClass, field);
+			}
 		}
 		addNewBuilder(clazz, builderClass);
 		addBuildMethod(clazz.implClass, builderClass, declaredFields, superclassFields);
 		return builderClass;
 	}
 
-	private void addProperty(JDefinedClass clazz, FieldOutline field) {
-		clazz.field(JMod.PRIVATE, getJavaType(field), field.getPropertyInfo().getName(false));
+	private JVar addProperty(JDefinedClass clazz, FieldOutline field) {
+		JType jType = getJavaType(field);
+		if (field.getPropertyInfo().isCollection()) {
+			return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false), getNewCollectionExpression(field.parent().implClass.owner(), jType));
+		} else {
+			return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false));
+		}
 	}
 
 	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
@@ -206,10 +219,25 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private JMethod addWithMethod(JDefinedClass builderClass, FieldOutline field) {
-		String fieldName = field.getPropertyInfo().getName(false);
-		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+		String fieldName = field.getPropertyInfo().getName(true);
+		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName);
 		generatePropertyAssignment(method, field);
 		method.body()._return(JExpr.direct("this"));
+		return method;
+	}
+
+	private JMethod addAddMethod(JDefinedClass builderClass, FieldOutline field) {
+		List<JClass> typeParams = ((JClass) getJavaType(field)).getTypeParameters();
+		if (!typeParams.iterator().hasNext()) {
+			return null;
+		}
+		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "add" + field.getPropertyInfo().getName(true));
+		JBlock block = method.body();
+		String fieldName = field.getPropertyInfo().getName(false);
+		JVar param = method.param(JMod.FINAL, typeParams.iterator().next(), fieldName);
+		JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
+		block.add(invocation);
+		block._return(JExpr.direct("this"));
 		return method;
 	}
 
@@ -293,6 +321,34 @@ public final class PluginImpl extends Plugin {
 			return JExpr._new(codeModel.ref(SortedSet.class));
 		}
 		return param;
+	}
+
+	private JExpression getNewCollectionExpression(JCodeModel codeModel, JType jType) {
+		List<JClass> typeParams = ((JClass) jType).getTypeParameters();
+		JClass typeParameter = null;
+		if (typeParams.iterator().hasNext()) {
+			typeParameter = typeParams.iterator().next();
+		}
+
+		JClass newClass = null;
+		if (jType.erasure().equals(codeModel.ref(Collection.class))) {
+			newClass = codeModel.ref(ArrayList.class);
+		} else if (jType.erasure().equals(codeModel.ref(List.class))) {
+			newClass = codeModel.ref(ArrayList.class);
+		} else if (jType.erasure().equals(codeModel.ref(Map.class))) {
+			newClass = codeModel.ref(HashMap.class);
+		} else if (jType.erasure().equals(codeModel.ref(Set.class))) {
+			newClass = codeModel.ref(HashSet.class);
+		} else if (jType.erasure().equals(codeModel.ref(SortedMap.class))) {
+			newClass = codeModel.ref(SortedMap.class);
+		} else if (jType.erasure().equals(codeModel.ref(SortedSet.class))) {
+			newClass = codeModel.ref(SortedSet.class);
+		}
+		if (newClass != null && typeParameter != null) {
+			newClass = newClass.narrow(typeParameter);
+		}
+
+		return newClass == null ? JExpr._null() : JExpr._new(newClass);
 	}
 
 	private void generateDefaultPropertyAssignment(JMethod method, FieldOutline fieldOutline) {

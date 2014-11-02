@@ -7,7 +7,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -35,7 +34,7 @@ public class TestImmutableXjc {
 						.withCountry("country")
 						.withName("name").build())
 				.withOrderperson("person")
-				.withItem(Arrays.asList(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build()))
+				.addItem(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build())
 				.build();
 		assertNotNull(orders);
 
