@@ -1,3 +1,4 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.sabomichal/immutable-xjc-plugin/badge.svg)]
 ## immutable-xjc
 
 IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable:
