@@ -139,4 +139,4 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
     </executions>
 </plugin>
 ```
-If you like it, give it a star.
+If you like it, give it a star, if you don't, write an issue.
