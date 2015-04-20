@@ -1,5 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.sabomichal/immutable-xjc-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.sabomichal/immutable-xjc-plugin)
 ## immutable-xjc
-
 IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutable:
 
 * removes all setter methods
@@ -139,3 +139,4 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
     </executions>
 </plugin>
 ```
+If you like it, give it a star, if you don't, write an issue.
