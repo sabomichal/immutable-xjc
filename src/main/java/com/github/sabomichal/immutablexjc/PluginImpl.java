@@ -42,13 +42,13 @@ import java.util.logging.Level;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
- * 
- * @author <a href="mailto:sabo.michal@gmail.com">Michal Sabo</a>
  *
+ * @author <a href="mailto:sabo.michal@gmail.com">Michal Sabo</a>
  */
 public final class PluginImpl extends Plugin {
 
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
+	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String UNSET_PREFIX = "unset";
 	private static final String SET_PREFIX = "set";
 	private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
@@ -57,8 +57,9 @@ public final class PluginImpl extends Plugin {
 
 	private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
 	private boolean createBuilder;
+	private boolean createCConstructor;
 	private Options options;
-	
+
 	@Override
 	public boolean run(final Outline model, final Options options, final ErrorHandler errorHandler) {
 		boolean success = true;
@@ -73,7 +74,7 @@ public final class PluginImpl extends Plugin {
 			FieldOutline[] superclassFields = getSuperclassFields(clazz);
 
 			int declaredFieldsLength = declaredFields != null ? declaredFields.length : 0;
-			int superclassFieldsLength = superclassFields != null ? superclassFields.length : 0;
+			int superclassFieldsLength = superclassFields.length;
 			if (declaredFieldsLength + superclassFieldsLength > 0) {
 				if (addStandardConstructor(implClass, declaredFields, superclassFields) == null) {
 					log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
@@ -93,8 +94,15 @@ public final class PluginImpl extends Plugin {
 
 			if (createBuilder) {
 				if (!clazz.implClass.isAbstract()) {
-					if (addBuilderClass(clazz, declaredFields, superclassFields) == null) {
+					JDefinedClass builderClass;
+					if ((builderClass = addBuilderClass(clazz, declaredFields, superclassFields)) == null) {
 						log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
+					}
+
+					if (createCConstructor && builderClass != null) {
+						if (addCopyConstructor(clazz.implClass, builderClass, declaredFields, superclassFields) == null) {
+							log(Level.WARNING, "couldNotAddCopyCtor", implClass.binaryName());
+						}
 					}
 				}
 			}
@@ -117,29 +125,33 @@ public final class PluginImpl extends Plugin {
 	public String getOptionName() {
 		return OPTION_NAME;
 	}
-	
+
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n;
+		return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n;
 	}
-	
+
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		if ( args[i].startsWith( BUILDER_OPTION_NAME ) ) {
-            this.createBuilder = true;
-            return 1;
-        }
+		if (args[i].startsWith(BUILDER_OPTION_NAME)) {
+			this.createBuilder = true;
+			return 1;
+		}
+		if (args[i].startsWith(CCONSTRUCTOR_OPTION_NAME)) {
+			this.createCConstructor = true;
+			return 1;
+		}
 		return 0;
 	}
-	
+
 	private String getMessage(final String key, final Object... args) {
 		return MessageFormat.format(resourceBundle.getString(key), args);
 	}
 
 	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JDefinedClass builderClass = generateBuilderClass(clazz.implClass);
-		if (builderClass == null)  {
+		if (builderClass == null) {
 			return null;
 		}
 		for (FieldOutline field : declaredFields) {
@@ -157,6 +169,9 @@ public final class PluginImpl extends Plugin {
 			}
 		}
 		addNewBuilder(clazz, builderClass);
+		if (createCConstructor) {
+			addNewBuilderCc(clazz, builderClass);
+		}
 		addBuildMethod(clazz.implClass, builderClass, declaredFields, superclassFields);
 		return builderClass;
 	}
@@ -184,18 +199,34 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void addNewBuilder(ClassOutline clazz, JDefinedClass builderClass) {
-                boolean superClassWithSameName = false;
-                ClassOutline superclass = clazz.getSuperClass();
-                while (superclass != null) {
-                    if (superclass.implClass.name().equals(clazz.implClass.name())) {
-                        superClassWithSameName = true;
-                    }
-                    superclass = superclass.getSuperClass();
-                }
-                if (!superClassWithSameName){
-                    JMethod method = clazz.implClass.method(JMod.PUBLIC|JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
-                    method.body()._return(JExpr._new(builderClass));
-                }
+		boolean superClassWithSameName = false;
+		ClassOutline superclass = clazz.getSuperClass();
+		while (superclass != null) {
+			if (superclass.implClass.name().equals(clazz.implClass.name())) {
+				superClassWithSameName = true;
+			}
+			superclass = superclass.getSuperClass();
+		}
+		if (!superClassWithSameName) {
+			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+			method.body()._return(JExpr._new(builderClass));
+		}
+	}
+
+	private void addNewBuilderCc(ClassOutline clazz, JDefinedClass builderClass) {
+		boolean superClassWithSameName = false;
+		ClassOutline superclass = clazz.getSuperClass();
+		while (superclass != null) {
+			if (superclass.implClass.name().equals(clazz.implClass.name())) {
+				superClassWithSameName = true;
+			}
+			superclass = superclass.getSuperClass();
+		}
+		if (!superClassWithSameName) {
+			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+			JVar param = method.param(JMod.FINAL, clazz.implClass, "o");
+			method.body()._return(JExpr._new(builderClass).arg(param));
+		}
 	}
 
 	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
@@ -214,6 +245,14 @@ public final class PluginImpl extends Plugin {
 			ctor = this.generateStandardConstructor(clazz, declaredFields, superclassFields);
 		} else {
 			this.log(Level.WARNING, "standardCtorExists");
+		}
+		return ctor;
+	}
+
+	private JMethod addCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+		JMethod ctor = generateCopyConstructor(clazz, builderClass, declaredFields, superclassFields);
+		if (ctor != null) {
+			createConstructor(builderClass, JMod.PUBLIC);
 		}
 		return ctor;
 	}
@@ -245,7 +284,7 @@ public final class PluginImpl extends Plugin {
 		JDefinedClass builderClass = null;
 		String builderClassName = clazz.name() + "Builder";
 		try {
-			builderClass = clazz._class(JMod.PUBLIC|JMod.STATIC, builderClassName);
+			builderClass = clazz._class(JMod.PUBLIC | JMod.STATIC, builderClassName);
 		} catch (JClassAlreadyExistsException e) {
 			this.log(Level.WARNING, "builderClassExists", builderClassName);
 		}
@@ -362,7 +401,7 @@ public final class PluginImpl extends Plugin {
 			if (fieldOutline.parent().parent().getCodeModel().BOOLEAN.equals(javaType)) {
 				return JExpr.lit(false);
 			} else if (fieldOutline.parent().parent().getCodeModel().SHORT.equals(javaType)) {
-				return JExpr.cast(fieldOutline.parent().parent().getCodeModel().SHORT , JExpr.lit(0));
+				return JExpr.cast(fieldOutline.parent().parent().getCodeModel().SHORT, JExpr.lit(0));
 			} else {
 				return JExpr.lit(0);
 			}
@@ -400,6 +439,39 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
+	private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+		final JMethod ctor = createConstructor(builderClass, JMod.PUBLIC);
+		final JVar o = ctor.param(JMod.FINAL, clazz, "o");
+		ctor.body()._if(o.eq(JExpr._null()))._then()._throw(
+				JExpr._new(builderClass.owner().ref(NullPointerException.class)).
+						arg("Cannot create a copy of '" + builderClass.name() + "' from 'null'."));
+
+		for (FieldOutline field : superclassFields) {
+			String propertyName = field.getPropertyInfo().getName(false);
+			JMethod getter = getPropertyGetter(field);
+			ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
+		}
+		for (FieldOutline field : declaredFields) {
+			String propertyName = field.getPropertyInfo().getName(false);
+			JMethod getter = getPropertyGetter(field);
+			ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
+		}
+
+		return ctor;
+	}
+
+	private JMethod getPropertyGetter( final FieldOutline f ) {
+		final JDefinedClass clazz = f.parent().implClass;
+		final String name = f.getPropertyInfo().getName(true);
+		JMethod getter = clazz.getMethod( "get" + name, NO_ARGS );
+
+		if ( getter == null ) {
+			getter = clazz.getMethod( "is" + name, NO_ARGS );
+		}
+
+		return getter;
+	}
+
 	private JMethod createConstructor(final JDefinedClass clazz, final int visibility) {
 		final JMethod ctor = clazz.constructor(visibility);
 		ctor.body().directStatement("// " + getMessage("title"));
@@ -409,7 +481,7 @@ public final class PluginImpl extends Plugin {
 	private JType getJavaType(FieldOutline field) {
 		return field.getRawType();
 	}
-	
+
 	private JType[] getFieldTypes(FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JType[] fieldTypes = new JType[declaredFields.length + superclassFields.length];
 		int i = 0;
@@ -421,7 +493,7 @@ public final class PluginImpl extends Plugin {
 		}
 		return fieldTypes;
 	}
-	
+
 	private JMethod getGetterProperty(final FieldOutline fieldOutline) {
 		final JDefinedClass clazz = fieldOutline.parent().implClass;
 		final String name = fieldOutline.getPropertyInfo().getName(true);
@@ -435,7 +507,7 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void log(final Level level, final String key, final Object... args) {
-		final StringBuilder b = new StringBuilder(512).append("[").append(MESSAGE_PREFIX).append("] [").append(level.getLocalizedName()).append("] ").append(getMessage(key, args));
+		final String message = "[" + MESSAGE_PREFIX + "] [" + level.getLocalizedName() + "] " + getMessage(key, args);
 
 		int logLevel = Level.WARNING.intValue();
 		if (this.options != null && !this.options.quiet) {
@@ -449,9 +521,9 @@ public final class PluginImpl extends Plugin {
 
 		if (level.intValue() >= logLevel) {
 			if (level.intValue() <= Level.INFO.intValue()) {
-				System.out.println(b.toString());
+				System.out.println(message);
 			} else {
-				System.err.println(b.toString());
+				System.err.println(message);
 			}
 		}
 	}

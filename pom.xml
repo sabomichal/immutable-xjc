@@ -228,7 +228,7 @@
 								</goals>
 								<configuration>
 									<packageName>${project.groupId}.immutablexjc.test</packageName>
-									<arguments>-immutable -imm-builder</arguments>
+									<arguments>-immutable -imm-builder -imm-cc</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -258,7 +258,7 @@
 										<wsdlFile>basic.wsdl</wsdlFile>
 									</wsdlFiles>
 									<args>
-										<arg>-B-immutable -B-imm-builder</arg>
+										<arg>-B-immutable -B-imm-builder -B-imm-cc</arg>
 									</args>
 								</configuration>
 							</execution>
@@ -290,6 +290,7 @@
 											<extraargs>
 												<extraarg>-xjc-immutable</extraarg>
 												<extraarg>-xjc-imm-builder</extraarg>
+												<extraarg>-xjc-imm-cc</extraarg>
 											</extraargs>
 										</wsdlOption>
 									</wsdlOptions>

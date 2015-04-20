@@ -26,7 +26,7 @@ public class TestImmutableXjc {
 
 	@Test
 	public void testMarshall() throws Exception {
-		Shiporder orders = Shiporder.shiporderBuilder()
+		Shiporder.ShiporderBuilder ordersBuilder = Shiporder.shiporderBuilder()
 				.withOrderid("123")
 				.withShipto(Shiporder.Shipto.shiptoBuilder()
 						.withAddress("address")
@@ -34,13 +34,16 @@ public class TestImmutableXjc {
 						.withCountry("country")
 						.withName("name").build())
 				.withOrderperson("person")
-				.addItem(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build())
-				.build();
-		assertNotNull(orders);
+				.addItem(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build());
+		assertNotNull(ordersBuilder.build());
+
+		Shiporder.ShiporderBuilder copy = Shiporder.shiporderBuilder(ordersBuilder.build());
+		assertNotNull(copy.build());
 
 		JAXBContext jc = JAXBContext.newInstance(Shiporder.class);
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		marshaller.marshal(orders, System.out);
+		marshaller.marshal(ordersBuilder.build(), System.out);
+		marshaller.marshal(copy.build(), System.out);
 	}
 }
