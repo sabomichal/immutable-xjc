@@ -49,6 +49,7 @@ public final class PluginImpl extends Plugin {
 
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
+	private static final String LAZY_WRAPPING_OPTION_NAME = "-imm-lazy-wrapping";
 	private static final String UNSET_PREFIX = "unset";
 	private static final String SET_PREFIX = "set";
 	private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
@@ -58,6 +59,7 @@ public final class PluginImpl extends Plugin {
 	private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
 	private boolean createBuilder;
 	private boolean createCConstructor;
+	private boolean lazyWrapping = false;
 	private Options options;
 
 	@Override
@@ -129,7 +131,7 @@ public final class PluginImpl extends Plugin {
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n;
+		return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n + "  " + LAZY_WRAPPING_OPTION_NAME + "       :  " + getMessage("lazyWrappingUsage") + n;
 	}
 
 	@Override
@@ -140,6 +142,10 @@ public final class PluginImpl extends Plugin {
 		}
 		if (args[i].startsWith(CCONSTRUCTOR_OPTION_NAME)) {
 			this.createCConstructor = true;
+			return 1;
+		}
+		if (args[i].startsWith(LAZY_WRAPPING_OPTION_NAME)) {
+			this.lazyWrapping = true;
 			return 1;
 		}
 		return 0;
@@ -297,9 +303,22 @@ public final class PluginImpl extends Plugin {
 		clazz.methods().remove(getter);
 		// and create a new one
 		JMethod newGetter = field.parent().implClass.method(getter.mods().getValue(), getter.type(), getter.name());
-		JFieldVar fieldVar = clazz.fields().get(field.getPropertyInfo().getName(false));
 		JBlock block = newGetter.body();
-		block._return(fieldVar);
+
+		if (this.lazyWrapping) {
+			JVar ret = block.decl(getJavaType(field), "ret");
+			JCodeModel codeModel = field.parent().implClass.owner();
+			JVar param = generateMethodParameter(getter, field);
+			JConditional conditional = block._if(param.eq(JExpr._null()));
+			conditional._then().assign(ret, getEmptyCollectionExpression(codeModel, param));
+			conditional._else().assign(ret, getUnmodifiableWrappedExpression(codeModel, param));
+			block._return(ret);
+		}
+		else {
+			JFieldVar fieldVar = clazz.fields().get(field.getPropertyInfo().getName(false));		
+			block._return(fieldVar);			
+		}
+
 		getter.javadoc().append("Returns unmodifiable collection.");
 	}
 
@@ -312,11 +331,17 @@ public final class PluginImpl extends Plugin {
 		JCodeModel codeModel = fieldOutline.parent().implClass.owner();
 		String fieldName = fieldOutline.getPropertyInfo().getName(false);
 		JVar param = generateMethodParameter(method, fieldOutline);
-		if (fieldOutline.getPropertyInfo().isCollection() && wrapUnmodifiable) {
-			JConditional conditional = block._if(param.eq(JExpr._null()));
-			conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
-			conditional._else().assign(JExpr.refthis(fieldName), getUnmodifiableWrappedExpression(codeModel, param));
-			replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+		if (fieldOutline.getPropertyInfo().isCollection()) {
+			if (wrapUnmodifiable) {
+				JConditional conditional = block._if(param.eq(JExpr._null()));
+				conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
+				conditional._else().assign(JExpr.refthis(fieldName), getUnmodifiableWrappedExpression(codeModel, param));	
+			}
+			else {
+				block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
+			}
+			
+			replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));				
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
@@ -418,8 +443,10 @@ public final class PluginImpl extends Plugin {
 				generateMethodParameter(ctor, fieldOutline);
 			}
 		}
+		
+		boolean ctorCollectionWrapping = !this.lazyWrapping;
 		for (FieldOutline fieldOutline : declaredFields) {
-			generatePropertyAssignment(ctor, fieldOutline, true);
+			generatePropertyAssignment(ctor, fieldOutline, ctorCollectionWrapping);
 		}
 		return ctor;
 	}
