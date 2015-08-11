@@ -300,7 +300,7 @@ public final class PluginImpl extends Plugin {
 		JFieldVar fieldVar = clazz.fields().get(field.getPropertyInfo().getName(false));
 		JBlock block = newGetter.body();
 		block._return(fieldVar);
-		getter.javadoc().append("Returns unmodifiable collection.");
+		newGetter.javadoc().append("Returns unmodifiable collection.");
 	}
 
 	private void generatePropertyAssignment(final JMethod method, FieldOutline fieldOutline) {
