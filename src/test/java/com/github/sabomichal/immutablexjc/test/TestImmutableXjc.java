@@ -5,8 +5,6 @@ import org.junit.Test;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -15,35 +13,53 @@ import static org.junit.Assert.assertNotNull;
  * @author Michal Sabo
  */
 public class TestImmutableXjc {
-	@Test
-	public void testUnmarshall() throws Exception {
-		JAXBContext jc = JAXBContext.newInstance(Shiporder.class);
-		Unmarshaller unmarshaller = jc.createUnmarshaller();
-		Shiporder orders = (Shiporder) unmarshaller.unmarshal(this.getClass().getResourceAsStream("/orders.xml"));
-		assertNotNull(orders.getItem());
-		assertNotNull(orders);
-	}
 
-	@Test
-	public void testMarshall() throws Exception {
-		Shiporder.ShiporderBuilder ordersBuilder = Shiporder.shiporderBuilder()
-				.withOrderid("123")
-				.withShipto(Shiporder.Shipto.shiptoBuilder()
-						.withAddress("address")
-						.withCity("city")
-						.withCountry("country")
-						.withName("name").build())
-				.withOrderperson("person")
-				.addItem(Shiporder.Item.itemBuilder().withNote("note").withPrice(BigDecimal.ONE).withQuantity(BigInteger.TEN).withTitle("title").build());
-		assertNotNull(ordersBuilder.build());
+    @Test
+    public void testUnmarshall() throws Exception {
+        JAXBContext jc = JAXBContext.newInstance(Model.class);
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        Model model = (Model) unmarshaller.unmarshal(this.getClass().getResourceAsStream("/model.xml"));
+        assertNotNull(model);
+        assertNotNull(model.getParameters());
+    }
 
-		Shiporder.ShiporderBuilder copy = Shiporder.shiporderBuilder(ordersBuilder.build());
-		assertNotNull(copy.build());
+    @Test
+    public void testMarshall() throws Exception {
+        Model.ModelBuilder modelBuilder = Model.modelBuilder()
+                .withParameters(Parameters.parametersBuilder()
+                        .addParameter(Declaration.declarationBuilder()
+                                .withType("type")
+                                .withName("name")
+                                .withDocumentation("doc")
+                                .addBy(NameExpression.nameExpressionBuilder()
+                                        .withName("x")
+                                        .build())
+                                .addBy(NameExpression.nameExpressionBuilder()
+                                        .withName("y")
+                                        .build())
+                                .build())
+                        .addParameter(Declaration.declarationBuilder()
+                                .withType("type")
+                                .withName("name")
+                                .withDocumentation("doc")
+                                .addBy(NameExpression.nameExpressionBuilder()
+                                        .withName("x")
+                                        .build())
+                                .addBy(NameExpression.nameExpressionBuilder()
+                                        .withName("y")
+                                        .build())
+                                .build())
+                        .build());
 
-		JAXBContext jc = JAXBContext.newInstance(Shiporder.class);
-		Marshaller marshaller = jc.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		marshaller.marshal(ordersBuilder.build(), System.out);
-		marshaller.marshal(copy.build(), System.out);
-	}
+        assertNotNull(modelBuilder.build());
+
+        Model.ModelBuilder copy = Model.modelBuilder(modelBuilder.build());
+        assertNotNull(copy.build());
+
+        JAXBContext jc = JAXBContext.newInstance(Model.class);
+        Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        marshaller.marshal(modelBuilder.build(), System.out);
+        marshaller.marshal(copy.build(), System.out);
+    }
 }

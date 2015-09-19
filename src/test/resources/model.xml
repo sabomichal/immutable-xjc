@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model xmlns="http://a.b.c.com/d">
+	<parameters>
+		<parameter type="Double" name="x">
+			<by name="a"/>
+			<by name="b"/>
+		</parameter>
+	</parameters>
+</model>

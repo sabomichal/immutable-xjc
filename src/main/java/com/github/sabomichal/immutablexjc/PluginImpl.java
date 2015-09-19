@@ -297,10 +297,17 @@ public final class PluginImpl extends Plugin {
 		clazz.methods().remove(getter);
 		// and create a new one
 		JMethod newGetter = field.parent().implClass.method(getter.mods().getValue(), getter.type(), getter.name());
-		JFieldVar fieldVar = clazz.fields().get(field.getPropertyInfo().getName(false));
 		JBlock block = newGetter.body();
-		block._return(fieldVar);
-		newGetter.javadoc().append("Returns unmodifiable collection.");
+		
+		JVar ret = block.decl(getJavaType(field), "ret");
+		JCodeModel codeModel = field.parent().implClass.owner();
+		JVar param = generateMethodParameter(getter, field);
+		JConditional conditional = block._if(param.eq(JExpr._null()));
+		conditional._then().assign(ret, getEmptyCollectionExpression(codeModel, param));
+		conditional._else().assign(ret, getUnmodifiableWrappedExpression(codeModel, param));
+		block._return(ret);
+
+		getter.javadoc().append("Returns unmodifiable collection.");
 	}
 
 	private void generatePropertyAssignment(final JMethod method, FieldOutline fieldOutline) {
@@ -312,11 +319,17 @@ public final class PluginImpl extends Plugin {
 		JCodeModel codeModel = fieldOutline.parent().implClass.owner();
 		String fieldName = fieldOutline.getPropertyInfo().getName(false);
 		JVar param = generateMethodParameter(method, fieldOutline);
-		if (fieldOutline.getPropertyInfo().isCollection() && wrapUnmodifiable) {
-			JConditional conditional = block._if(param.eq(JExpr._null()));
-			conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
-			conditional._else().assign(JExpr.refthis(fieldName), getUnmodifiableWrappedExpression(codeModel, param));
-			replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+		if (fieldOutline.getPropertyInfo().isCollection()) {
+			if (wrapUnmodifiable) {
+				JConditional conditional = block._if(param.eq(JExpr._null()));
+				conditional._then().assign(JExpr.refthis(fieldName), getEmptyCollectionExpression(codeModel, param));
+				conditional._else().assign(JExpr.refthis(fieldName), getUnmodifiableWrappedExpression(codeModel, param));	
+			}
+			else {
+				block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
+			}
+			
+			replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));				
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
@@ -418,8 +431,9 @@ public final class PluginImpl extends Plugin {
 				generateMethodParameter(ctor, fieldOutline);
 			}
 		}
+		
 		for (FieldOutline fieldOutline : declaredFields) {
-			generatePropertyAssignment(ctor, fieldOutline, true);
+			generatePropertyAssignment(ctor, fieldOutline, false);
 		}
 		return ctor;
 	}
