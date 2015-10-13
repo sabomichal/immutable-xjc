@@ -252,7 +252,7 @@
 									<goal>wsimport-test</goal>
 								</goals>
 								<configuration>
-									<sourceDestDir>${project.build.directory}/generated-test-sources</sourceDestDir>
+									<sourceDestDir>${project.build.directory}/generated-test-sources/wsdl</sourceDestDir>
 									<wsdlDirectory>${project.basedir}/src/test/wsdl</wsdlDirectory>
 									<wsdlFiles>
 										<wsdlFile>basic.wsdl</wsdlFile>
@@ -283,7 +283,7 @@
 									<goal>wsdl2java</goal>
 								</goals>
 								<configuration>
-									<sourceRoot>${project.build.directory}/generated-test-sources</sourceRoot>
+									<sourceRoot>${project.build.directory}/generated-test-sources/wsdl</sourceRoot>
 									<wsdlOptions>
 										<wsdlOption>
 											<wsdl>${basedir}/src/test/wsdl/complex.wsdl</wsdl>
