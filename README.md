@@ -146,6 +146,39 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
 </plugin>
 ```
 
+```xml
+<plugin>
+    <groupId>org.apache.cxf</groupId>
+    <artifactId>cxf-xjc-plugin</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.sabomichal</groupId>
+            <artifactId>immutable-xjc-plugin</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>xsd2java</goal>
+            </goals>
+            <configuration>
+                <xsdOptions>
+                    <xsdOption>
+                        <xsd>${basedir}/wsdl/test.wsdl</xsd>
+                        <extensionArgs>
+                            <extensionArg>-immutable</extensionArg>
+                            <extensionArg>-imm-builder</extensionArg>
+                        </extensionArgs>
+                    </xsdOption>
+                </xsdOptions>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
 #### Gradle
 The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *jaxb2-maven-plugin* and [gradle-jaxb-plugin](https://github.com/jacobono/gradle-jaxb-plugin).
 ```groovy
