@@ -112,7 +112,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
     </executions>
 </plugin>
 ```
-Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* mojo.
+Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* and *cxf-xjc-plugin* mojo.
 ```xml
 <plugin>
     <groupId>org.apache.cxf</groupId>
@@ -145,7 +145,6 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
     </executions>
 </plugin>
 ```
-
 ```xml
 <plugin>
     <groupId>org.apache.cxf</groupId>
