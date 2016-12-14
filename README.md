@@ -112,7 +112,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
     </executions>
 </plugin>
 ```
-Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* mojo.
+Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* and *cxf-xjc-plugin* mojo.
 ```xml
 <plugin>
     <groupId>org.apache.cxf</groupId>
@@ -145,4 +145,65 @@ Next example demonstrates the usage of the plugin with CXF *cxf-codegen-plugin* 
     </executions>
 </plugin>
 ```
+```xml
+<plugin>
+    <groupId>org.apache.cxf</groupId>
+    <artifactId>cxf-xjc-plugin</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.sabomichal</groupId>
+            <artifactId>immutable-xjc-plugin</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>xsd2java</goal>
+            </goals>
+            <configuration>
+                <xsdOptions>
+                    <xsdOption>
+                        <xsd>${basedir}/wsdl/test.wsdl</xsd>
+                        <extensionArgs>
+                            <extensionArg>-immutable</extensionArg>
+                            <extensionArg>-imm-builder</extensionArg>
+                        </extensionArgs>
+                    </xsdOption>
+                </xsdOptions>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+#### Gradle
+The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *jaxb2-maven-plugin* and [gradle-jaxb-plugin](https://github.com/jacobono/gradle-jaxb-plugin).
+```groovy
+plugins {
+    id 'com.github.jacobono.jaxb' version '1.3.5'
+}
+
+dependencies {
+    jaxb 'com.github.sabomichal:immutable-xjc-plugin:1.3.1'
+    jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
+    jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
+    jaxb 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:1.11.1'
+    jaxb 'org.jvnet.jaxb2_commons:jaxb2-basics:1.11.1'
+    jaxb 'org.jvnet.jaxb2_commons:jaxb2-basics-annotate:1.0.2'
+}
+
+jaxb {
+    xsdDir = 'src/main/xsd'
+    xjc {
+        taskClassname = 'org.jvnet.jaxb2_commons.xjc.XJC2Task'
+        generatePackage = 'com.example'
+        destinationDir = 'src/main/generated-sources'
+        args = ['-Xinheritance', '-Xannotate', '-immutable']
+    }
+}
+```
+
+
 If you like it, give it a star, if you don't, write an issue.
