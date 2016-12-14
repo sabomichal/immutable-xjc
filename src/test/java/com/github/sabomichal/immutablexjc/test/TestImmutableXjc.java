@@ -7,6 +7,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -51,7 +52,8 @@ public class TestImmutableXjc {
                                 .build())
                         .build());
 
-        assertNotNull(modelBuilder.build());
+        Model model = modelBuilder.build();
+        assertNotNull(model);
 
         Model.ModelBuilder copy = Model.modelBuilder(modelBuilder.build());
         assertNotNull(copy.build());
@@ -61,5 +63,12 @@ public class TestImmutableXjc {
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         marshaller.marshal(modelBuilder.build(), System.out);
         marshaller.marshal(copy.build(), System.out);
+
+        try {
+            model.getParameters().getParameter().add(0, new Declaration.DeclarationBuilder().withType("type").build());
+            fail("Expected an UnsupportedOperationException to be thrown");
+        } catch (UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
     }
 }
