@@ -75,7 +75,10 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
                 <goal>xjc</goal>
             </goals>
             <configuration>
-                <arguments>-immutable -imm-builder</arguments>
+                <arguments>
+                      <argument>-immutable</argument>
+                      <argument>-imm-builder</argument>
+                </arguments>
             </configuration>
         </execution>
     </executions>
