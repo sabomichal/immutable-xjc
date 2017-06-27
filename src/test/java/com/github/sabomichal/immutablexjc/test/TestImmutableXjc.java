@@ -7,6 +7,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -70,5 +71,50 @@ public class TestImmutableXjc {
         } catch (UnsupportedOperationException e) {
             assertNotNull(e);
         }
+    }
+
+    @Test
+    public void testCollectionsAreImmutable() {
+        Declaration d1 = Declaration.declarationBuilder()
+                .withType("type")
+                .withName("name")
+                .withDocumentation("doc")
+                .addBy(NameExpression.nameExpressionBuilder()
+                        .withName("x")
+                        .build())
+                .addBy(NameExpression.nameExpressionBuilder()
+                        .withName("y")
+                        .build())
+                .build();
+        assertNotNull(d1);
+
+        Parameters p1 = Parameters.parametersBuilder()
+                        .addParameter(d1)
+                        .build();
+        assertNotNull(p1);
+
+        assertTrue(p1.getParameter().contains(d1));
+
+        Parameters.ParametersBuilder b1 = Parameters.parametersBuilder(p1);
+
+        Declaration d2 = Declaration.declarationBuilder()
+                .withType("type")
+                .withName("name")
+                .withDocumentation("doc")
+                .addBy(NameExpression.nameExpressionBuilder()
+                        .withName("x")
+                        .build())
+                .addBy(NameExpression.nameExpressionBuilder()
+                        .withName("y")
+                        .build())
+                .build();
+        assertNotNull(d2);
+
+        b1.addParameter(d2);
+        Parameters p2 = b1.build();
+        assertNotNull(p2);
+
+        assertTrue(p2.getParameter().contains(d2));
+        assertTrue(!p1.getParameter().contains(d2));
     }
 }
