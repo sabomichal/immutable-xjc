@@ -256,7 +256,7 @@
 						</dependencies>
 						<executions>
 							<execution>
-								<phase>generate-sources</phase>
+								<phase>generate-test-sources</phase>
 								<goals>
 									<goal>wsdl2java</goal>
 								</goals>
