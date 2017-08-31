@@ -51,6 +51,7 @@ public final class PluginImpl extends Plugin {
 
     private static final String BUILDER_OPTION_NAME = "-imm-builder";
     private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
+    private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
     private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
@@ -60,6 +61,7 @@ public final class PluginImpl extends Plugin {
     private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
     private boolean createBuilder;
     private boolean createCConstructor;
+    private boolean createWithIfNotNullMethod;
     private Options options;
 
     @Override
@@ -132,7 +134,7 @@ public final class PluginImpl extends Plugin {
     @Override
     public String getUsage() {
         final String n = System.getProperty("line.separator", "\n");
-        return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n;
+        return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n + "  " + WITHIFNOTNULL_OPTION_NAME + "       :  " + getMessage("withIfNotNullUsage") + n;
     }
 
     @Override
@@ -143,6 +145,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(CCONSTRUCTOR_OPTION_NAME)) {
             this.createCConstructor = true;
+            return 1;
+        }
+        if (args[i].startsWith(WITHIFNOTNULL_OPTION_NAME)) {
+            this.createWithIfNotNullMethod = true;
             return 1;
         }
         return 0;
@@ -159,14 +165,20 @@ public final class PluginImpl extends Plugin {
         }
         for (FieldOutline field : declaredFields) {
             addProperty(builderClass, field);
-            addWithMethod(builderClass, field);
+            JMethod unconditionalWithMethod = addWithMethod(builderClass, field);
+            if (createWithIfNotNullMethod) {
+                addWithIfNotNullMethod(builderClass, field, unconditionalWithMethod);
+            }
             if (field.getPropertyInfo().isCollection()) {
                 addAddMethod(builderClass, field);
             }
         }
         for (FieldOutline field : superclassFields) {
             addProperty(builderClass, field);
-            addWithMethod(builderClass, field);
+            JMethod unconditionalWithMethod = addWithMethod(builderClass, field);
+            if (createWithIfNotNullMethod) {
+                addWithIfNotNullMethod(builderClass, field, unconditionalWithMethod);
+            }
             if (field.getPropertyInfo().isCollection()) {
                 addAddMethod(builderClass, field);
             }
@@ -265,6 +277,19 @@ public final class PluginImpl extends Plugin {
         JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName);
         generatePropertyAssignment(method, field);
         method.body()._return(JExpr.direct("this"));
+        return method;
+    }
+
+    private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field, JMethod unconditionalWithMethod) {
+        if (field.getRawType().isPrimitive())
+          return null;
+        String fieldName = field.getPropertyInfo().getName(true);
+        JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName + "IfNotNull");
+        JVar param = generateMethodParameter(method, field);
+        JBlock block = method.body();
+        JConditional conditional = block._if(param.eq(JExpr._null()));
+        conditional._then()._return(JExpr.direct("this"));
+        conditional._else()._return(JExpr.invoke(unconditionalWithMethod).arg(param));
         return method;
     }
 
