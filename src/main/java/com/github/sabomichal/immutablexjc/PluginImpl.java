@@ -52,6 +52,8 @@ public final class PluginImpl extends Plugin {
     private static final String BUILDER_OPTION_NAME = "-imm-builder";
     private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
     private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
+    private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
+
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
     private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
@@ -62,6 +64,7 @@ public final class PluginImpl extends Plugin {
     private boolean createBuilder;
     private boolean createCConstructor;
     private boolean createWithIfNotNullMethod;
+    private boolean createBuilderWithoutPublicConstructor;
     private Options options;
 
     @Override
@@ -84,13 +87,17 @@ public final class PluginImpl extends Plugin {
                     log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
                 }
             }
-
             if (declaredFieldsLength + superclassFieldsLength > 0) {
-                if (addPropertyContructor(implClass, declaredFields, superclassFields) == null) {
-                    log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
+                if(createBuilderWithoutPublicConstructor){
+                    if (addPropertyContructor(implClass, declaredFields, superclassFields,JMod.PROTECTED) == null) {
+                        log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
+                    }
+                }else {
+                    if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.PUBLIC) == null) {
+                        log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
+                    }
                 }
             }
-
             //implClass.direct("// " + getMessage("title"));
             makeClassFinal(implClass);
             removeSetters(implClass);
@@ -134,7 +141,7 @@ public final class PluginImpl extends Plugin {
     @Override
     public String getUsage() {
         final String n = System.getProperty("line.separator", "\n");
-        return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n + "  " + WITHIFNOTNULL_OPTION_NAME + "       :  " + getMessage("withIfNotNullUsage") + n;
+        return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n + "  " + WITHIFNOTNULL_OPTION_NAME + "       :  " + getMessage("withIfNotNullUsage") + n + "  " + NOPUBLICCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("builderWithoutPublicConstructor") + n;
     }
 
     @Override
@@ -149,6 +156,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(WITHIFNOTNULL_OPTION_NAME)) {
             this.createWithIfNotNullMethod = true;
+            return 1;
+        }
+        if (args[i].startsWith(NOPUBLICCONSTRUCTOR_OPTION_NAME)) {
+            this.createBuilderWithoutPublicConstructor = true;
             return 1;
         }
         return 0;
@@ -244,10 +255,10 @@ public final class PluginImpl extends Plugin {
         }
     }
 
-    private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
         JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields, superclassFields));
         if (ctor == null) {
-            ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields);
+            ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields, constAccess);
         } else {
             this.log(Level.WARNING, "standardCtorExists");
         }
@@ -476,8 +487,8 @@ public final class PluginImpl extends Plugin {
         return JExpr._null();
     }
 
-    private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
-        final JMethod ctor = createConstructor(clazz, JMod.PUBLIC);
+    private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
+        final JMethod ctor = createConstructor(clazz, constAccess);
         if (superclassFields.length > 0) {
             JInvocation superInvocation = ctor.body().invoke("super");
             for (FieldOutline fieldOutline : superclassFields) {
