@@ -13,6 +13,10 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
 
 ### Release notes
+#### 1.4
+* added an option to generate non-public constructors
+* added an option to generate additional *withAIfNotNull(A a)* builder methods 
+
 #### 1.3
 * builder class copy constructor added
 
@@ -43,6 +47,12 @@ The '-imm-builder' option can be used to generate builder like pattern utils for
 #### -imm-cc
 The '-imm-cc' option can only be used together with '-imm-builder' option and it is used to generate builder class copy construstructor, initialising builder with object of given class.
 
+#### -imm-ifnotnull
+The '-imm-ifnotnull' option can only be used together with '-imm-builder' option and it is used to add an additional withAIfNotNull(A a) method for all non-primitive fields A in the generated builders.
+
+#### -imm-nopubconstructor
+The '-imm-nopubconstructor' option is used to make the constructors of the generated classes non-public.
+
 ### Usage
 #### JAXB-RI CLI
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.Driver'. The following example demonstrates a working command line for use with JDK 1.5 (assuming the needed dependencies are found in the current working directory).
@@ -52,7 +62,7 @@ java -cp activation-1.1.jar:\
            stax-api-1.0.jar:\
            jaxb-impl-2.0.5.jar:\
            jaxb-xjc-2.0.5.jar:\
-           immutable-xjc-plugin-1.3.1.jar\
+           immutable-xjc-plugin-1.4.jar\
            com.sun.tools.xjc.Driver -d /tmp/src -immutable <schema files>
 ```
 #### Maven
@@ -65,7 +75,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.3.1</version>
+            <version>1.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -94,7 +104,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.3.1</version>
+            <version>1.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -124,7 +134,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.3.1</version>
+            <version>1.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -156,7 +166,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.2</version>
+            <version>1.4</version>
         </dependency>
     </dependencies>
     <executions>
@@ -189,7 +199,7 @@ plugins {
 }
 
 dependencies {
-    jaxb 'com.github.sabomichal:immutable-xjc-plugin:1.3.1'
+    jaxb 'com.github.sabomichal:immutable-xjc-plugin:1.4'
     jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
     jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
     jaxb 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:1.11.1'
