@@ -178,10 +178,10 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
             <configuration>
                 <xsdOptions>
                     <xsdOption>
-                        <xsd>${basedir}/wsdl/test.wsdl</xsd>
+                        <xsd>${basedir}/wsdl/test.xsd</xsd>
                         <extensionArgs>
-                            <extensionArg>-immutable</extensionArg>
-                            <extensionArg>-imm-builder</extensionArg>
+                            <arg>-immutable</arg>
+                            <arg>-imm-builder</arg>
                         </extensionArgs>
                     </xsdOption>
                 </xsdOptions>
