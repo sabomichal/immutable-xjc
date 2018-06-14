@@ -192,7 +192,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
 ```
 
 #### Gradle
-The following example demonstrates the use of the IMMUTABLE-XJC plugin with the plugins *jaxb2-maven-plugin* and [gradle-jaxb-plugin](https://github.com/jacobono/gradle-jaxb-plugin).
+The following example demonstrates the use of the IMMUTABLE-XJC plugin with the plugin [gradle-jaxb-plugin](https://plugins.gradle.org/plugin/com.github.jacobono.jaxb).
 ```groovy
 plugins {
     id 'com.github.jacobono.jaxb' version '1.3.5'
