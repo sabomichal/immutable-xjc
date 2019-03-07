@@ -53,6 +53,7 @@ public final class PluginImpl extends Plugin {
     private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
     private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
     private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
+    private static final String LEAVECOLLECTIONS_OPTION_NAME = "-imm-leavecollections";
 
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
@@ -65,6 +66,7 @@ public final class PluginImpl extends Plugin {
     private boolean createCConstructor;
     private boolean createWithIfNotNullMethod;
     private boolean createBuilderWithoutPublicConstructor;
+    private boolean leaveCollectionsMutable;
     private Options options;
 
     @Override
@@ -141,8 +143,38 @@ public final class PluginImpl extends Plugin {
     @Override
     public String getUsage() {
         final String n = System.getProperty("line.separator", "\n");
-        return "  -" + OPTION_NAME + "  :  " + getMessage("usage") + n + "  " + BUILDER_OPTION_NAME + "       :  " + getMessage("builderUsage") + n + "  " + CCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("cConstructorUsage") + n + "  " + WITHIFNOTNULL_OPTION_NAME + "       :  " + getMessage("withIfNotNullUsage") + n + "  " + NOPUBLICCONSTRUCTOR_OPTION_NAME + "       :  " + getMessage("builderWithoutPublicConstructor") + n;
-    }
+        StringBuilder retval = new StringBuilder("  -");
+		retval.append(OPTION_NAME);
+		retval.append("  :  ");
+		retval.append(getMessage("usage"));
+		retval.append(n);
+		retval.append("  ");
+		retval.append(BUILDER_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("builderUsage"));
+		retval.append(n);
+		retval.append("  ");
+		retval.append(CCONSTRUCTOR_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("cConstructorUsage"));
+		retval.append(n);
+		retval.append("  ");
+		retval.append(WITHIFNOTNULL_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("withIfNotNullUsage"));
+		retval.append(n);
+		retval.append("  ");
+		retval.append(NOPUBLICCONSTRUCTOR_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("builderWithoutPublicConstructor"));
+		retval.append(n);
+		retval.append("  ");
+		retval.append(LEAVECOLLECTIONS_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("leaveCollectionsMutable"));
+		retval.append(n);
+		return retval.toString();
+	}
 
     @Override
     public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
@@ -160,6 +192,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(NOPUBLICCONSTRUCTOR_OPTION_NAME)) {
             this.createBuilderWithoutPublicConstructor = true;
+            return 1;
+        }
+        if (args[i].startsWith(LEAVECOLLECTIONS_OPTION_NAME)) {
+            this.leaveCollectionsMutable = true;
             return 1;
         }
         return 0;
@@ -366,8 +402,9 @@ public final class PluginImpl extends Plugin {
             } else {
                 block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
             }
-
-            replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+            if (!leaveCollectionsMutable) {
+            	replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+            }
         } else {
             block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
         }
