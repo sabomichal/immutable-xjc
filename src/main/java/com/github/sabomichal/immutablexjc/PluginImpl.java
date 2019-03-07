@@ -90,8 +90,8 @@ public final class PluginImpl extends Plugin {
                 }
             }
             if (declaredFieldsLength + superclassFieldsLength > 0) {
-                if(createBuilderWithoutPublicConstructor){
-                    if (addPropertyContructor(implClass, declaredFields, superclassFields,JMod.PROTECTED) == null) {
+                if (createBuilderWithoutPublicConstructor || (createBuilder && declaredFieldsLength + superclassFieldsLength > 8)){
+                    if (addPropertyContructor(implClass, declaredFields, superclassFields,JMod.NONE) == null) {
                         log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
                     }
                 }else {
