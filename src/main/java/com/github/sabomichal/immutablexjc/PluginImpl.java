@@ -104,7 +104,7 @@ public final class PluginImpl extends Plugin {
             makeClassFinal(implClass);
             removeSetters(implClass);
             makePropertiesPrivate(implClass);
-            makePropertiesFinal(implClass);
+            makePropertiesFinal(implClass, declaredFields);
 
             if (createBuilder) {
                 if (!clazz.implClass.isAbstract()) {
@@ -394,7 +394,7 @@ public final class PluginImpl extends Plugin {
         JCodeModel codeModel = fieldOutline.parent().implClass.owner();
         String fieldName = fieldOutline.getPropertyInfo().getName(false);
         JVar param = generateMethodParameter(method, fieldOutline);
-        if (fieldOutline.getPropertyInfo().isCollection()) {
+        if (fieldOutline.getPropertyInfo().isCollection() && !leaveCollectionsMutable) {
             if (wrapUnmodifiable) {
                 JConditional conditional = block._if(param.eq(JExpr._null()));
                 conditional._then().assign(JExpr.refthis(fieldName), JExpr._null());
@@ -402,9 +402,7 @@ public final class PluginImpl extends Plugin {
             } else {
                 block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
             }
-            if (!leaveCollectionsMutable) {
-            	replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
-            }
+           	replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
         } else {
             block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
         }
@@ -668,10 +666,16 @@ public final class PluginImpl extends Plugin {
         }
     }
 
-    private void makePropertiesFinal(JDefinedClass clazz) {
-        for (JFieldVar field : clazz.fields().values()) {
-            field.mods().setFinal(true);
-        }
+    private void makePropertiesFinal(JDefinedClass clazz, FieldOutline[] declaredFields) {
+    	for (FieldOutline fieldOutline : declaredFields) {
+    		String fieldName = fieldOutline.getPropertyInfo().getName(false);
+    		if (!fieldOutline.getPropertyInfo().isCollection() && !leaveCollectionsMutable) {
+    			clazz.fields().get(fieldName).mods().setFinal(true);
+    		}			
+		}
+//        for (JFieldVar field : clazz.fields().values()) {
+//            field.mods().setFinal(true);
+//        }
     }
 
     private void removeSetters(JDefinedClass clazz) {
