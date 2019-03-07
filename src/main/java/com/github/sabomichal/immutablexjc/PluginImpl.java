@@ -1,5 +1,27 @@
 package com.github.sabomichal.immutablexjc;
 
+import java.beans.Introspector;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Level;
+
+import org.xml.sax.ErrorHandler;
+
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -20,27 +42,6 @@ import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-
-import java.beans.Introspector;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
@@ -90,17 +91,19 @@ public final class PluginImpl extends Plugin {
                 }
             }
             if (declaredFieldsLength + superclassFieldsLength > 0) {
-                if (createBuilderWithoutPublicConstructor || (createBuilder && declaredFieldsLength + superclassFieldsLength > 8)){
-                    if (addPropertyContructor(implClass, declaredFields, superclassFields,JMod.NONE) == null) {
+                if (createBuilderWithoutPublicConstructor
+                    || (createBuilder && declaredFieldsLength + superclassFieldsLength > 8)) {
+                    if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.NONE) == null) {
                         log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
                     }
-                }else {
+                }
+                else {
                     if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.PUBLIC) == null) {
                         log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
                     }
                 }
             }
-            //implClass.direct("// " + getMessage("title"));
+            // implClass.direct("// " + getMessage("title"));
             makeClassFinal(implClass);
             removeSetters(implClass);
             makePropertiesPrivate(implClass);
@@ -126,7 +129,8 @@ public final class PluginImpl extends Plugin {
         for (ClassOutline clazz : model.getClasses()) {
             if (clazz.getSuperClass() != null) {
                 clazz.getSuperClass().implClass.mods().setFinal(false);
-            } else if (clazz.implClass.isAbstract()) {
+            }
+            else if (clazz.implClass.isAbstract()) {
                 clazz.implClass.mods().setFinal(false);
             }
         }
@@ -144,37 +148,37 @@ public final class PluginImpl extends Plugin {
     public String getUsage() {
         final String n = System.getProperty("line.separator", "\n");
         StringBuilder retval = new StringBuilder("  -");
-		retval.append(OPTION_NAME);
-		retval.append("  :  ");
-		retval.append(getMessage("usage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(BUILDER_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(CCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("cConstructorUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(WITHIFNOTNULL_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("withIfNotNullUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(NOPUBLICCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderWithoutPublicConstructor"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(LEAVECOLLECTIONS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("leaveCollectionsMutable"));
-		retval.append(n);
-		return retval.toString();
-	}
+        retval.append(OPTION_NAME);
+        retval.append("  :  ");
+        retval.append(getMessage("usage"));
+        retval.append(n);
+        retval.append("  ");
+        retval.append(BUILDER_OPTION_NAME);
+        retval.append("       :  ");
+        retval.append(getMessage("builderUsage"));
+        retval.append(n);
+        retval.append("  ");
+        retval.append(CCONSTRUCTOR_OPTION_NAME);
+        retval.append("       :  ");
+        retval.append(getMessage("cConstructorUsage"));
+        retval.append(n);
+        retval.append("  ");
+        retval.append(WITHIFNOTNULL_OPTION_NAME);
+        retval.append("       :  ");
+        retval.append(getMessage("withIfNotNullUsage"));
+        retval.append(n);
+        retval.append("  ");
+        retval.append(NOPUBLICCONSTRUCTOR_OPTION_NAME);
+        retval.append("       :  ");
+        retval.append(getMessage("builderWithoutPublicConstructor"));
+        retval.append(n);
+        retval.append("  ");
+        retval.append(LEAVECOLLECTIONS_OPTION_NAME);
+        retval.append("       :  ");
+        retval.append(getMessage("leaveCollectionsMutable"));
+        retval.append(n);
+        return retval.toString();
+    }
 
     @Override
     public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
@@ -241,13 +245,16 @@ public final class PluginImpl extends Plugin {
     private JVar addProperty(JDefinedClass clazz, FieldOutline field) {
         JType jType = getJavaType(field);
         if (field.getPropertyInfo().isCollection()) {
-            return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false), getNewCollectionExpression(field.parent().implClass.owner(), jType));
-        } else {
+            return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false),
+                getNewCollectionExpression(field.parent().implClass.owner(), jType));
+        }
+        else {
             return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false));
         }
     }
 
-    private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields,
+            FieldOutline[] superclassFields) {
         JMethod method = builderClass.method(JMod.PUBLIC, clazz, "build");
         JInvocation constructorInvocation = JExpr._new(clazz);
         for (FieldOutline field : superclassFields) {
@@ -270,7 +277,8 @@ public final class PluginImpl extends Plugin {
             superclass = superclass.getSuperClass();
         }
         if (!superClassWithSameName) {
-            JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+            JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass,
+                Introspector.decapitalize(clazz.implClass.name()) + "Builder");
             method.body()._return(JExpr._new(builderClass));
         }
     }
@@ -285,33 +293,39 @@ public final class PluginImpl extends Plugin {
             superclass = superclass.getSuperClass();
         }
         if (!superClassWithSameName) {
-            JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+            JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass,
+                Introspector.decapitalize(clazz.implClass.name()) + "Builder");
             JVar param = method.param(JMod.FINAL, clazz.implClass, "o");
             method.body()._return(JExpr._new(builderClass).arg(param));
         }
     }
 
-    private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
+    private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields,
+            int constAccess) {
         JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields, superclassFields));
         if (ctor == null) {
             ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields, constAccess);
-        } else {
+        }
+        else {
             this.log(Level.WARNING, "standardCtorExists");
         }
         return ctor;
     }
 
-    private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields,
+            FieldOutline[] superclassFields) {
         JMethod ctor = clazz.getConstructor(NO_ARGS);
         if (ctor == null) {
             ctor = this.generateStandardConstructor(clazz, declaredFields, superclassFields);
-        } else {
+        }
+        else {
             this.log(Level.WARNING, "standardCtorExists");
         }
         return ctor;
     }
 
-    private JMethod addCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private JMethod addCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass,
+            FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
         JMethod ctor = generateCopyConstructor(clazz, builderClass, declaredFields, superclassFields);
         if (ctor != null) {
             createConstructor(builderClass, JMod.PUBLIC);
@@ -329,7 +343,7 @@ public final class PluginImpl extends Plugin {
 
     private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field, JMethod unconditionalWithMethod) {
         if (field.getRawType().isPrimitive())
-          return null;
+            return null;
         String fieldName = field.getPropertyInfo().getName(true);
         JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName + "IfNotNull");
         JVar param = generateMethodParameter(method, field);
@@ -360,7 +374,8 @@ public final class PluginImpl extends Plugin {
         String builderClassName = clazz.name() + "Builder";
         try {
             builderClass = clazz._class(JMod.PUBLIC | JMod.STATIC, builderClassName);
-        } catch (JClassAlreadyExistsException e) {
+        }
+        catch (JClassAlreadyExistsException e) {
             this.log(Level.WARNING, "builderClassExists", builderClassName);
         }
         return builderClass;
@@ -398,12 +413,15 @@ public final class PluginImpl extends Plugin {
             if (wrapUnmodifiable) {
                 JConditional conditional = block._if(param.eq(JExpr._null()));
                 conditional._then().assign(JExpr.refthis(fieldName), JExpr._null());
-                conditional._else().assign(JExpr.refthis(fieldName), getDefensiveCopyExpression(codeModel, getJavaType(fieldOutline), param));
-            } else {
+                conditional._else().assign(JExpr.refthis(fieldName),
+                    getDefensiveCopyExpression(codeModel, getJavaType(fieldOutline), param));
+            }
+            else {
                 block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
             }
-           	replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
-        } else {
+            replaceCollectionGetter(fieldOutline, getGetterProperty(fieldOutline));
+        }
+        else {
             block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
         }
     }
@@ -424,15 +442,20 @@ public final class PluginImpl extends Plugin {
         JClass newClass = null;
         if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
             newClass = codeModel.ref(ArrayList.class);
-        } else if (param.type().erasure().equals(codeModel.ref(List.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(List.class))) {
             newClass = codeModel.ref(ArrayList.class);
-        } else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
             newClass = codeModel.ref(HashMap.class);
-        } else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
             newClass = codeModel.ref(HashSet.class);
-        } else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
             newClass = codeModel.ref(TreeMap.class);
-        } else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
         if (newClass != null && typeParameter != null) {
@@ -444,15 +467,20 @@ public final class PluginImpl extends Plugin {
     private JExpression getUnmodifiableWrappedExpression(JCodeModel codeModel, JVar param) {
         if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableCollection").arg(param);
-        } else if (param.type().erasure().equals(codeModel.ref(List.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(List.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableList").arg(param);
-        } else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableMap").arg(param);
-        } else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableSet").arg(param);
-        } else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableSortedMap").arg(param);
-        } else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
             return codeModel.ref(Collections.class).staticInvoke("unmodifiableSortedSet").arg(param);
         }
         return param;
@@ -461,15 +489,20 @@ public final class PluginImpl extends Plugin {
     private JExpression getEmptyCollectionExpression(JCodeModel codeModel, JVar param) {
         if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
             return codeModel.ref(Collections.class).staticInvoke("emptyList");
-        } else if (param.type().erasure().equals(codeModel.ref(List.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(List.class))) {
             return codeModel.ref(Collections.class).staticInvoke("emptyList");
-        } else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Map.class))) {
             return codeModel.ref(Collections.class).staticInvoke("emptyMap");
-        } else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(Set.class))) {
             return codeModel.ref(Collections.class).staticInvoke("emptySet");
-        } else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedMap.class))) {
             return JExpr._new(codeModel.ref(TreeMap.class));
-        } else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
+        }
+        else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
             return JExpr._new(codeModel.ref(TreeSet.class));
         }
         return param;
@@ -485,15 +518,20 @@ public final class PluginImpl extends Plugin {
         JClass newClass = null;
         if (jType.erasure().equals(codeModel.ref(Collection.class))) {
             newClass = codeModel.ref(ArrayList.class);
-        } else if (jType.erasure().equals(codeModel.ref(List.class))) {
+        }
+        else if (jType.erasure().equals(codeModel.ref(List.class))) {
             newClass = codeModel.ref(ArrayList.class);
-        } else if (jType.erasure().equals(codeModel.ref(Map.class))) {
+        }
+        else if (jType.erasure().equals(codeModel.ref(Map.class))) {
             newClass = codeModel.ref(HashMap.class);
-        } else if (jType.erasure().equals(codeModel.ref(Set.class))) {
+        }
+        else if (jType.erasure().equals(codeModel.ref(Set.class))) {
             newClass = codeModel.ref(HashSet.class);
-        } else if (jType.erasure().equals(codeModel.ref(SortedMap.class))) {
+        }
+        else if (jType.erasure().equals(codeModel.ref(SortedMap.class))) {
             newClass = codeModel.ref(TreeMap.class);
-        } else if (jType.erasure().equals(codeModel.ref(SortedSet.class))) {
+        }
+        else if (jType.erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
         if (newClass != null && typeParameter != null) {
@@ -513,16 +551,19 @@ public final class PluginImpl extends Plugin {
         if (javaType.isPrimitive()) {
             if (fieldOutline.parent().parent().getCodeModel().BOOLEAN.equals(javaType)) {
                 return JExpr.lit(false);
-            } else if (fieldOutline.parent().parent().getCodeModel().SHORT.equals(javaType)) {
+            }
+            else if (fieldOutline.parent().parent().getCodeModel().SHORT.equals(javaType)) {
                 return JExpr.cast(fieldOutline.parent().parent().getCodeModel().SHORT, JExpr.lit(0));
-            } else {
+            }
+            else {
                 return JExpr.lit(0);
             }
         }
         return JExpr._null();
     }
 
-    private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
+    private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields,
+            FieldOutline[] superclassFields, int constAccess) {
         final JMethod ctor = createConstructor(clazz, constAccess);
         if (superclassFields.length > 0) {
             JInvocation superInvocation = ctor.body().invoke("super");
@@ -538,7 +579,8 @@ public final class PluginImpl extends Plugin {
         return ctor;
     }
 
-    private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields,
+            FieldOutline[] superclassFields) {
         final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);
         ctor.javadoc().add("Used by JAX-B");
         if (superclassFields.length > 0) {
@@ -553,12 +595,12 @@ public final class PluginImpl extends Plugin {
         return ctor;
     }
 
-    private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+    private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass,
+            FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
         final JMethod ctor = createConstructor(builderClass, JMod.PUBLIC);
         final JVar o = ctor.param(JMod.FINAL, clazz, "o");
-        ctor.body()._if(o.eq(JExpr._null()))._then()._throw(
-                JExpr._new(builderClass.owner().ref(NullPointerException.class)).
-                        arg("Cannot create a copy of '" + builderClass.name() + "' from 'null'."));
+        ctor.body()._if(o.eq(JExpr._null()))._then()._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
+            .arg("Cannot create a copy of '" + builderClass.name() + "' from 'null'."));
 
         JCodeModel codeModel = clazz.owner();
 
@@ -569,9 +611,12 @@ public final class PluginImpl extends Plugin {
             if (field.getPropertyInfo().isCollection()) {
                 JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
                 JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
-                conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
-                conditional._else().assign(JExpr.refthis(propertyName),  getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-            } else {
+                conditional._then().assign(JExpr.refthis(propertyName),
+                    getNewCollectionExpression(codeModel, getJavaType(field)));
+                conditional._else().assign(JExpr.refthis(propertyName),
+                    getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
+            }
+            else {
                 ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
             }
         }
@@ -581,9 +626,12 @@ public final class PluginImpl extends Plugin {
             if (field.getPropertyInfo().isCollection()) {
                 JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.ref(o, propertyName));
                 JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
-                conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
-                conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-            } else {
+                conditional._then().assign(JExpr.refthis(propertyName),
+                    getNewCollectionExpression(codeModel, getJavaType(field)));
+                conditional._else().assign(JExpr.refthis(propertyName),
+                    getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
+            }
+            else {
                 ctor.body().assign(JExpr.refthis(propertyName), JExpr.ref(o, propertyName));
             }
         }
@@ -650,7 +698,8 @@ public final class PluginImpl extends Plugin {
         if (level.intValue() >= logLevel) {
             if (level.intValue() <= Level.INFO.intValue()) {
                 System.out.println(message);
-            } else {
+            }
+            else {
                 System.err.println(message);
             }
         }
@@ -667,15 +716,11 @@ public final class PluginImpl extends Plugin {
     }
 
     private void makePropertiesFinal(JDefinedClass clazz, FieldOutline[] declaredFields) {
-    	for (FieldOutline fieldOutline : declaredFields) {
-    		String fieldName = fieldOutline.getPropertyInfo().getName(false);
-    		if (!fieldOutline.getPropertyInfo().isCollection() && !leaveCollectionsMutable) {
-    			clazz.fields().get(fieldName).mods().setFinal(true);
-    		}			
-		}
-//        for (JFieldVar field : clazz.fields().values()) {
-//            field.mods().setFinal(true);
-//        }
+        for (FieldOutline fieldOutline : declaredFields) {
+            String fieldName = fieldOutline.getPropertyInfo().getName(false);
+            clazz.fields().get(fieldName).mods()
+                .setFinal(!(leaveCollectionsMutable && fieldOutline.getPropertyInfo().isCollection()));
+        }
     }
 
     private void removeSetters(JDefinedClass clazz) {
