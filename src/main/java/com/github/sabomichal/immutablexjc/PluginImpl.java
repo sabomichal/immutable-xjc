@@ -125,8 +125,7 @@ public final class PluginImpl extends Plugin {
 			}
 		}
 
-		// if superclass is a JAXB bound class or an abstract class, revert
-		// setting it final
+		// if superclass is a JAXB bound class or an abstract class, revert setting it final
 		for (ClassOutline clazz : model.getClasses()) {
 			if (clazz.getSuperClass() != null) {
 				clazz.getSuperClass().implClass.mods().setFinal(false);
@@ -181,8 +180,7 @@ public final class PluginImpl extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i)
-			throws BadCommandLineException, IOException {
+	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
 		if (args[i].startsWith(BUILDER_OPTION_NAME)) {
 			this.createBuilder = true;
 			return 1;
@@ -210,8 +208,7 @@ public final class PluginImpl extends Plugin {
 		return MessageFormat.format(resourceBundle.getString(key), args);
 	}
 
-	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields) {
+	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JDefinedClass builderClass = generateBuilderClass(clazz.implClass);
 		if (builderClass == null) {
 			return null;
@@ -254,8 +251,7 @@ public final class PluginImpl extends Plugin {
 		}
 	}
 
-	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields) {
+	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod method = builderClass.method(JMod.PUBLIC, clazz, "build");
 		JInvocation constructorInvocation = JExpr._new(clazz);
 		for (FieldOutline field : superclassFields) {
@@ -301,8 +297,7 @@ public final class PluginImpl extends Plugin {
 		}
 	}
 
-	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields, int constAccess) {
+	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
 		JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields, superclassFields));
 		if (ctor == null) {
 			ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields, constAccess);
@@ -312,8 +307,7 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
-	private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields) {
+	private JMethod addStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod ctor = clazz.getConstructor(NO_ARGS);
 		if (ctor == null) {
 			ctor = this.generateStandardConstructor(clazz, declaredFields, superclassFields);
@@ -323,8 +317,7 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
-	private JMethod addCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass,
-			FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+	private JMethod addCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod ctor = generateCopyConstructor(clazz, builderClass, declaredFields, superclassFields);
 		if (ctor != null) {
 			createConstructor(builderClass, JMod.PUBLIC);
@@ -340,8 +333,7 @@ public final class PluginImpl extends Plugin {
 		return method;
 	}
 
-	private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field,
-			JMethod unconditionalWithMethod) {
+	private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field, JMethod unconditionalWithMethod) {
 		if (field.getRawType().isPrimitive())
 			return null;
 		String fieldName = field.getPropertyInfo().getName(true);
@@ -537,8 +529,7 @@ public final class PluginImpl extends Plugin {
 		return JExpr._null();
 	}
 
-	private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields, int constAccess) {
+	private JMethod generatePropertyConstructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
 		final JMethod ctor = createConstructor(clazz, constAccess);
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
@@ -554,8 +545,7 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
-	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields,
-			FieldOutline[] superclassFields) {
+	private JMethod generateStandardConstructor(final JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);
 		ctor.javadoc().add("Used by JAX-B");
 		if (superclassFields.length > 0) {
@@ -570,8 +560,7 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
-	private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass,
-			FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+	private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		final JMethod ctor = createConstructor(builderClass, JMod.PUBLIC);
 		final JVar o = ctor.param(JMod.FINAL, clazz, "o");
 		ctor.body()._if(o.eq(JExpr._null()))._then()
@@ -587,10 +576,8 @@ public final class PluginImpl extends Plugin {
 			if (field.getPropertyInfo().isCollection()) {
 				JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
 				JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
-				conditional._then().assign(JExpr.refthis(propertyName),
-						getNewCollectionExpression(codeModel, getJavaType(field)));
-				conditional._else().assign(JExpr.refthis(propertyName),
-						getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
+				conditional._then().assign(JExpr.refthis(propertyName),	getNewCollectionExpression(codeModel, getJavaType(field)));
+				conditional._else().assign(JExpr.refthis(propertyName),	getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
 			} else {
 				ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
 			}
@@ -601,10 +588,8 @@ public final class PluginImpl extends Plugin {
 			if (field.getPropertyInfo().isCollection()) {
 				JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.ref(o, propertyName));
 				JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
-				conditional._then().assign(JExpr.refthis(propertyName),
-						getNewCollectionExpression(codeModel, getJavaType(field)));
-				conditional._else().assign(JExpr.refthis(propertyName),
-						getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
+				conditional._then().assign(JExpr.refthis(propertyName),	getNewCollectionExpression(codeModel, getJavaType(field)));
+				conditional._else().assign(JExpr.refthis(propertyName),	getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
 			} else {
 				ctor.body().assign(JExpr.refthis(propertyName), JExpr.ref(o, propertyName));
 			}
@@ -691,8 +676,7 @@ public final class PluginImpl extends Plugin {
 	private void makePropertiesFinal(JDefinedClass clazz, FieldOutline[] declaredFields) {
 		for (FieldOutline fieldOutline : declaredFields) {
 			String fieldName = fieldOutline.getPropertyInfo().getName(false);
-			clazz.fields().get(fieldName).mods()
-					.setFinal(!(leaveCollectionsMutable && fieldOutline.getPropertyInfo().isCollection()));
+			clazz.fields().get(fieldName).mods().setFinal(!(leaveCollectionsMutable && fieldOutline.getPropertyInfo().isCollection()));
 		}
 	}
 
