@@ -7,7 +7,7 @@ IMMUTABLE-XJC is a JAXB 2.0 XJC plugin for making schema derived classes immutab
 * creates a public constructor with all fields as parameters
 * creates a protected no-arg constructor
 * marks all fields within a class as final
-* wraps all collection like parameters with Collections.unmodifiable or Collections.empty if null
+* wraps all collection like parameters with Collections.unmodifiable or Collections.empty if null (unless -imm-leavecollections option is used)
 * optionally creates builder pattern utility classes
 
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
@@ -52,6 +52,9 @@ The '-imm-ifnotnull' option can only be used together with '-imm-builder' option
 
 #### -imm-nopubconstructor
 The '-imm-nopubconstructor' option is used to make the constructors of the generated classes non-public.
+
+#### -imm-leavecollections
+The '-imm-leavecollections' option is used to leave collections mutable
 
 ### Usage
 #### JAXB-RI CLI
