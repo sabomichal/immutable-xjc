@@ -54,7 +54,7 @@ public final class PluginImpl extends Plugin {
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
 	private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
-	private static final String LEAVECOLLECTIONS_OPTION_NAME = "-imm-leavecollections";
+	private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
 
 	private static final String UNSET_PREFIX = "unset";
 	private static final String SET_PREFIX = "set";
@@ -172,7 +172,7 @@ public final class PluginImpl extends Plugin {
 		retval.append(getMessage("builderWithoutPublicConstructor"));
 		retval.append(n);
 		retval.append("  ");
-		retval.append(LEAVECOLLECTIONS_OPTION_NAME);
+		retval.append(SKIPCOLLECTIONS_OPTION_NAME);
 		retval.append("       :  ");
 		retval.append(getMessage("leaveCollectionsMutable"));
 		retval.append(n);
@@ -197,7 +197,7 @@ public final class PluginImpl extends Plugin {
 			this.createBuilderWithoutPublicConstructor = true;
 			return 1;
 		}
-		if (args[i].startsWith(LEAVECOLLECTIONS_OPTION_NAME)) {
+		if (args[i].startsWith(SKIPCOLLECTIONS_OPTION_NAME)) {
 			this.leaveCollectionsMutable = true;
 			return 1;
 		}

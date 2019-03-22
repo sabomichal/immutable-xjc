@@ -53,8 +53,8 @@ The '-imm-ifnotnull' option can only be used together with '-imm-builder' option
 #### -imm-nopubconstructor
 The '-imm-nopubconstructor' option is used to make the constructors of the generated classes non-public.
 
-#### -imm-leavecollections
-The '-imm-leavecollections' option is used to leave collections mutable
+#### -imm-skipcollections
+The '-imm-skipcollections' option is used to leave collections mutable
 
 ### Usage
 #### JAXB-RI CLI
