@@ -54,6 +54,7 @@ public final class PluginImpl extends Plugin {
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
 	private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
+	private static final String PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME = "-imm-pubconstructormaxargs";
 	private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
 
 	private static final String UNSET_PREFIX = "unset";
@@ -67,6 +68,7 @@ public final class PluginImpl extends Plugin {
 	private boolean createCConstructor;
 	private boolean createWithIfNotNullMethod;
 	private boolean createBuilderWithoutPublicConstructor;
+	private int publicConstructorMaxArgs = Integer.MAX_VALUE;
 	private boolean leaveCollectionsMutable;
 	private Options options;
 
@@ -92,7 +94,7 @@ public final class PluginImpl extends Plugin {
 			}
 			if (declaredFieldsLength + superclassFieldsLength > 0) {
 				if (createBuilderWithoutPublicConstructor
-						|| (createBuilder && declaredFieldsLength + superclassFieldsLength > 8)) {
+						|| (createBuilder && declaredFieldsLength + superclassFieldsLength > publicConstructorMaxArgs)) {
 					if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.NONE) == null) {
 						log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
 					}
@@ -176,6 +178,11 @@ public final class PluginImpl extends Plugin {
 		retval.append("       :  ");
 		retval.append(getMessage("leaveCollectionsMutable"));
 		retval.append(n);
+		retval.append("  ");
+		retval.append(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("publicConstructorMaxArgs"));
+		retval.append(n);
 		return retval.toString();
 	}
 
@@ -199,6 +206,10 @@ public final class PluginImpl extends Plugin {
 		}
 		if (args[i].startsWith(SKIPCOLLECTIONS_OPTION_NAME)) {
 			this.leaveCollectionsMutable = true;
+			return 1;
+		}
+		if (args[i].startsWith(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME)) {
+			this.publicConstructorMaxArgs  = Integer.parseInt(args[i].substring(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME.length()+1));
 			return 1;
 		}
 		return 0;

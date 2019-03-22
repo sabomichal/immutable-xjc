@@ -53,6 +53,9 @@ The '-imm-ifnotnull' option can only be used together with '-imm-builder' option
 #### -imm-nopubconstructor
 The '-imm-nopubconstructor' option is used to make the constructors of the generated classes non-public.
 
+#### -imm-pubconstructormaxargs
+The '-imm-pubconstructormaxargs=8' option is used to generate public constructors with up to 8 arguments, when -imm-builder is used 
+
 #### -imm-skipcollections
 The '-imm-skipcollections' option is used to leave collections mutable
 
