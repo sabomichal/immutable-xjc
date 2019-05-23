@@ -20,6 +20,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
+import com.sun.tools.xjc.model.*;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XmlString;
 import org.xml.sax.ErrorHandler;
 
 import com.sun.codemodel.JBlock;
@@ -43,6 +47,8 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
 /**
  * IMMUTABLE-XJC plugin implementation.
  *
@@ -56,6 +62,7 @@ public final class PluginImpl extends Plugin {
 	private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
 	private static final String PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME = "-imm-pubconstructormaxargs";
 	private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
+	private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-imm-constructordefaults";
 
 	private static final String UNSET_PREFIX = "unset";
 	private static final String SET_PREFIX = "set";
@@ -70,6 +77,7 @@ public final class PluginImpl extends Plugin {
 	private boolean createBuilderWithoutPublicConstructor;
 	private int publicConstructorMaxArgs = Integer.MAX_VALUE;
 	private boolean leaveCollectionsMutable;
+	private boolean setDefaultValuesInConstructor;
 	private Options options;
 
 	@Override
@@ -183,6 +191,13 @@ public final class PluginImpl extends Plugin {
 		retval.append("       :  ");
 		retval.append(getMessage("publicConstructorMaxArgs"));
 		retval.append(n);
+
+		retval.append("  ");
+		retval.append(CONSTRUCTORDEFAULTS_OPTION_NAME);
+		retval.append("       :  ");
+		retval.append(getMessage("setDefaultValuesInConstructor"));
+		retval.append(n);
+
 		return retval.toString();
 	}
 
@@ -210,6 +225,10 @@ public final class PluginImpl extends Plugin {
 		}
 		if (args[i].startsWith(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME)) {
 			this.publicConstructorMaxArgs  = Integer.parseInt(args[i].substring(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME.length()+1));
+			return 1;
+		}
+		if (args[i].startsWith(CONSTRUCTORDEFAULTS_OPTION_NAME)) {
+			this.setDefaultValuesInConstructor = true;
 			return 1;
 		}
 		return 0;
@@ -528,6 +547,30 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private JExpression defaultValue(JType javaType, FieldOutline fieldOutline) {
+		if(setDefaultValuesInConstructor) {
+			//try to find plain string or number default value for element
+			if (fieldOutline.getPropertyInfo().defaultValue == null
+					&& fieldOutline.getPropertyInfo().getAdapter() == null
+					&& fieldOutline.getPropertyInfo().getSchemaComponent() instanceof XSParticle) {
+				XSParticle part = (XSParticle) fieldOutline.getPropertyInfo().getSchemaComponent();
+				if (part.getTerm().isElementDecl()) {
+					XSElementDecl elem = part.getTerm().asElementDecl();
+					if (elem.getDefaultValue() != null) {
+						TypeUse typeUse = null;
+						for (CTypeInfo cti : fieldOutline.getPropertyInfo().ref()) {
+							if (cti instanceof TypeUse) {
+								typeUse = (TypeUse) cti;
+								break;
+							}
+						}
+						fieldOutline.getPropertyInfo().defaultValue = CDefaultValue.create(typeUse, elem.getDefaultValue());
+					}
+				}
+			}
+			if (fieldOutline.getPropertyInfo().defaultValue != null) {
+				return fieldOutline.getPropertyInfo().defaultValue.compute(fieldOutline.parent().parent());
+			}
+		}
 		if (javaType.isPrimitive()) {
 			if (fieldOutline.parent().parent().getCodeModel().BOOLEAN.equals(javaType)) {
 				return JExpr.lit(false);
