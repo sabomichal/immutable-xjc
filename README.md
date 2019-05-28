@@ -40,7 +40,7 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 * xsd polymorphism compilation problems fixed
 
 ### XJC options provided by the plugin
-The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled,  one additional option can be used to control the behavior of the plugin. See the examples for further information.
+The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled, additional options can be used to control the behavior of the plugin. See the examples for further information.
 
 #### -immutable
 The '-immutable' option enables the plugin making the XJC generated classes immutable.
@@ -62,6 +62,10 @@ The '-imm-pubconstructormaxargs=n' option is used to generate public constructor
 
 #### -imm-skipcollections
 The '-imm-skipcollections' option is used to leave collections mutable
+
+#### -imm-constructordefaults
+The '-imm-constructordefaults' option is used to set default values for xs:element's and xs:attribute's in no-argument constructor. Default values must be strings or numbers, otherwise ignored.
+
 
 ### Usage
 #### JAXB-RI CLI
