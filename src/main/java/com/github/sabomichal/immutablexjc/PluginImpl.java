@@ -21,6 +21,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 
 import com.sun.tools.xjc.model.*;
+import com.sun.xml.bind.v2.model.core.ID;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XmlString;
@@ -47,6 +48,7 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 
+import javax.activation.MimeType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
@@ -548,18 +550,54 @@ public final class PluginImpl extends Plugin {
 
 	private JExpression defaultValue(JType javaType, FieldOutline fieldOutline) {
 		if(setDefaultValuesInConstructor) {
-			//try to find plain string or number default value for element
+			//try to find default value for element
 			if (fieldOutline.getPropertyInfo().defaultValue == null
-					&& fieldOutline.getPropertyInfo().getAdapter() == null
 					&& fieldOutline.getPropertyInfo().getSchemaComponent() instanceof XSParticle) {
 				XSParticle part = (XSParticle) fieldOutline.getPropertyInfo().getSchemaComponent();
 				if (part.getTerm().isElementDecl()) {
 					XSElementDecl elem = part.getTerm().asElementDecl();
 					if (elem.getDefaultValue() != null) {
 						TypeUse typeUse = null;
+						final CAdapter ad = fieldOutline.getPropertyInfo().getAdapter();
 						for (CTypeInfo cti : fieldOutline.getPropertyInfo().ref()) {
 							if (cti instanceof TypeUse) {
-								typeUse = (TypeUse) cti;
+								if(ad!=null){
+									final CNonElement cti2 = (CNonElement) cti;
+									typeUse = new TypeUse() {
+										@Override
+										public boolean isCollection() {
+											return false;
+										}
+
+										@Override
+										public CAdapter getAdapterUse() {
+											return null;
+										}
+
+										@Override
+										public CNonElement getInfo() {
+											return null;
+										}
+
+										@Override
+										public ID idUse() {
+											return null;
+										}
+
+										@Override
+										public MimeType getExpectedMimeType() {
+											return null;
+										}
+
+										@Override
+										public JExpression createConstant(Outline outline, XmlString lexical) {
+											JExpression cons = cti2.createConstant(outline, lexical);
+											return JExpr._new(ad.getAdapterClass(outline)).invoke("unmarshal").arg(cons);
+										}
+									};
+								} else {
+									typeUse = (TypeUse) cti;
+								}
 								break;
 							}
 						}
