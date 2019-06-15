@@ -179,47 +179,28 @@ public final class PluginImpl extends Plugin {
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		StringBuilder retval = new StringBuilder("  -");
-		retval.append(OPTION_NAME);
-		retval.append("  :  ");
-		retval.append(getMessage("usage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(BUILDER_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(INHERIT_BUILDER_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("inheritBuilderUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(CCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("cConstructorUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(WITHIFNOTNULL_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("withIfNotNullUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(NOPUBLICCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderWithoutPublicConstructor"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(SKIPCOLLECTIONS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("leaveCollectionsMutable"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("publicConstructorMaxArgs"));
-		retval.append(n);
+		final int maxOptionLength = PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME.length();
+		StringBuilder retval = new StringBuilder();
+		appendOption(retval, "-"+OPTION_NAME, getMessage("usage"), n, maxOptionLength);
+		appendOption(retval, BUILDER_OPTION_NAME, getMessage("builderUsage"), n, maxOptionLength);
+		appendOption(retval, INHERIT_BUILDER_OPTION_NAME, getMessage("inheritBuilderUsage"), n, maxOptionLength);
+		appendOption(retval, CCONSTRUCTOR_OPTION_NAME, getMessage("cConstructorUsage"), n, maxOptionLength);
+		appendOption(retval, WITHIFNOTNULL_OPTION_NAME, getMessage("withIfNotNullUsage"), n, maxOptionLength);
+		appendOption(retval, NOPUBLICCONSTRUCTOR_OPTION_NAME, getMessage("builderWithoutPublicConstructor"), n, maxOptionLength);
+		appendOption(retval, SKIPCOLLECTIONS_OPTION_NAME, getMessage("leaveCollectionsMutable"), n, maxOptionLength);
+		appendOption(retval, PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME, getMessage("publicConstructorMaxArgs"), n, maxOptionLength);
 		return retval.toString();
+	}
+
+	private void appendOption(StringBuilder retval, String option, String description, String n, int optionColumnWidth) {
+		retval.append("  ");
+		retval.append(option);
+		for (int i=option.length(); i < optionColumnWidth; i++) {
+			retval.append(' ');
+		}
+		retval.append(" :  ");
+		retval.append(description);
+		retval.append(n);
 	}
 
 	@Override
@@ -410,7 +391,7 @@ public final class PluginImpl extends Plugin {
 		} else {
 			generatePropertyAssignment(method, field);
 		}
-		method.body()._return(JExpr.direct("this"));
+		method.body()._return(JExpr._this());
 		return method;
 	}
 
