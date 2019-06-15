@@ -423,10 +423,10 @@ public final class PluginImpl extends Plugin {
 		JBlock block = method.body();
 		if (inherit) {
 			generateSuperCall(method);
-			method.body()._return(JExpr.direct("this"));
+			method.body()._return(JExpr._this());
 		} else {
 			JConditional conditional = block._if(param.eq(JExpr._null()));
-			conditional._then()._return(JExpr.direct("this"));
+			conditional._then()._return(JExpr._this());
 			conditional._else()._return(JExpr.invoke(unconditionalWithMethod).arg(param));
 		}
 		return method;
@@ -447,7 +447,7 @@ public final class PluginImpl extends Plugin {
 			JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
 			block.add(invocation);
 		}
-		block._return(JExpr.direct("this"));
+		block._return(JExpr._this());
 		return method;
 	}
 
