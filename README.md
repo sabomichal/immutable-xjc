@@ -48,6 +48,9 @@ The '-immutable' option enables the plugin making the XJC generated classes immu
 #### -imm-builder
 The '-imm-builder' option can be used to generate builder like pattern utils for each schema derived class.
 
+#### -imm-inheritbuilder
+The '-imm-inheritbuilder' option can be used to generate builder classes that follow the same inheritance hierarchy as their subject classes. In addition to using inheritance, the generated builders follow a simpler naming scheme, using Foo.builder() and Foo.Builder instead of Foo.fooBuilder() and Foo.FooBuilder.
+
 #### -imm-cc
 The '-imm-cc' option can only be used together with '-imm-builder' option and it is used to generate builder class copy construstructor, initialising builder with object of given class.
 

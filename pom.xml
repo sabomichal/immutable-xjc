@@ -226,13 +226,32 @@
 						</dependencies>
 						<executions>
 							<execution>
+								<id>test-model-inherit</id>
 								<phase>generate-test-sources</phase>
 								<goals>
 									<goal>testXjc</goal>
 								</goals>
 								<configuration>
 									<generateEpisode>false</generateEpisode>
-									<packageName>${project.groupId}.immutablexjc.test</packageName>
+									<packageName>${project.groupId}.immutablexjc.test.inheritbuilder</packageName>
+									<arguments>
+										<argument>-immutable</argument>
+										<argument>-imm-builder</argument>
+										<argument>-imm-inheritbuilder</argument>
+										<argument>-imm-cc</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>test-model-noinherit</id>
+								<phase>generate-test-sources</phase>
+								<goals>
+									<goal>testXjc</goal>
+								</goals>
+								<configuration>
+									<generateEpisode>false</generateEpisode>
+									<packageName>${project.groupId}.immutablexjc.test.noinheritbuilder</packageName>
+									<clearOutputDir>false</clearOutputDir>
 									<arguments>
 										<argument>-immutable</argument>
 										<argument>-imm-builder</argument>
