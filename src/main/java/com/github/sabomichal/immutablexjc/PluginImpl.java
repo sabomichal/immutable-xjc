@@ -1,32 +1,5 @@
 package com.github.sabomichal.immutablexjc;
 
-import java.beans.Introspector;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
-
-import com.sun.tools.xjc.model.*;
-import com.sun.xml.bind.v2.model.core.ID;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XmlString;
-import org.xml.sax.ErrorHandler;
-
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -44,12 +17,41 @@ import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.model.CAdapter;
+import com.sun.tools.xjc.model.CDefaultValue;
+import com.sun.tools.xjc.model.CNonElement;
+import com.sun.tools.xjc.model.CTypeInfo;
+import com.sun.tools.xjc.model.TypeUse;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.bind.v2.model.core.ID;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XmlString;
+import org.xml.sax.ErrorHandler;
 
 import javax.activation.MimeType;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import java.beans.Introspector;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Level;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
@@ -59,6 +61,7 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 public final class PluginImpl extends Plugin {
 
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
+	private static final String INHERIT_BUILDER_OPTION_NAME = "-imm-inheritbuilder";
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
 	private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
@@ -74,6 +77,7 @@ public final class PluginImpl extends Plugin {
 
 	private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
 	private boolean createBuilder;
+	private boolean builderInheritance;
 	private boolean createCConstructor;
 	private boolean createWithIfNotNullMethod;
 	private boolean createBuilderWithoutPublicConstructor;
@@ -89,13 +93,40 @@ public final class PluginImpl extends Plugin {
 
 		this.log(Level.INFO, "title");
 
-		for (ClassOutline clazz : model.getClasses()) {
+		List<? extends ClassOutline> classes = new ArrayList<ClassOutline>(model.getClasses());
+		if (builderInheritance) {
+			Collections.sort(classes, new Comparator<ClassOutline>() {
+				@Override
+				public int compare(ClassOutline o1, ClassOutline o2) {
+					if (isSubClass(o1, o2)) {
+						return 1;
+					}
+					if (isSubClass(o2, o1)) {
+						return -1;
+					}
+					return 0;
+				}
+
+				private boolean isSubClass(ClassOutline o1, ClassOutline o2) {
+					boolean isSubClass = false;
+					ClassOutline superClass = o1.getSuperClass();
+					while(superClass != null && superClass != o2) {
+						superClass = superClass.getSuperClass();
+					}
+					if (superClass == o2) {
+						isSubClass = true;
+					}
+					return isSubClass;
+				}
+			});
+		}
+		for (ClassOutline clazz : classes) {
 			JDefinedClass implClass = clazz.implClass;
 
 			FieldOutline[] declaredFields = clazz.getDeclaredFields();
 			FieldOutline[] superclassFields = getSuperclassFields(clazz);
 
-			int declaredFieldsLength = declaredFields != null ? declaredFields.length : 0;
+			int declaredFieldsLength = declaredFields.length;
 			int superclassFieldsLength = superclassFields.length;
 			if (declaredFieldsLength + superclassFieldsLength > 0) {
 				if (addStandardConstructor(implClass, declaredFields, superclassFields) == null) {
@@ -122,14 +153,15 @@ public final class PluginImpl extends Plugin {
 
 			if (createBuilder) {
 				if (!clazz.implClass.isAbstract()) {
+					FieldOutline[] unhandledSuperclassFields = getUnhandledSuperclassFields(clazz, superclassFields);
 					JDefinedClass builderClass;
-					if ((builderClass = addBuilderClass(clazz, declaredFields, superclassFields)) == null) {
+					if ((builderClass = addBuilderClass(clazz, declaredFields, unhandledSuperclassFields, superclassFields)) == null) {
 						log(Level.WARNING, "couldNotAddClassBuilder", implClass.binaryName());
 					}
 
 					if (createCConstructor && builderClass != null) {
 						if (addCopyConstructor(clazz.implClass, builderClass, declaredFields,
-								superclassFields) == null) {
+								unhandledSuperclassFields) == null) {
 							log(Level.WARNING, "couldNotAddCopyCtor", implClass.binaryName());
 						}
 					}
@@ -158,55 +190,40 @@ public final class PluginImpl extends Plugin {
 	@Override
 	public String getUsage() {
 		final String n = System.getProperty("line.separator", "\n");
-		StringBuilder retval = new StringBuilder("  -");
-		retval.append(OPTION_NAME);
-		retval.append("  :  ");
-		retval.append(getMessage("usage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(BUILDER_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(CCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("cConstructorUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(WITHIFNOTNULL_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("withIfNotNullUsage"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(NOPUBLICCONSTRUCTOR_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("builderWithoutPublicConstructor"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(SKIPCOLLECTIONS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("leaveCollectionsMutable"));
-		retval.append(n);
-		retval.append("  ");
-		retval.append(PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("publicConstructorMaxArgs"));
-		retval.append(n);
-
-		retval.append("  ");
-		retval.append(CONSTRUCTORDEFAULTS_OPTION_NAME);
-		retval.append("       :  ");
-		retval.append(getMessage("setDefaultValuesInConstructor"));
-		retval.append(n);
-
+		final int maxOptionLength = PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME.length();
+		StringBuilder retval = new StringBuilder();
+		appendOption(retval, "-"+OPTION_NAME, getMessage("usage"), n, maxOptionLength);
+		appendOption(retval, BUILDER_OPTION_NAME, getMessage("builderUsage"), n, maxOptionLength);
+		appendOption(retval, INHERIT_BUILDER_OPTION_NAME, getMessage("inheritBuilderUsage"), n, maxOptionLength);
+		appendOption(retval, CCONSTRUCTOR_OPTION_NAME, getMessage("cConstructorUsage"), n, maxOptionLength);
+		appendOption(retval, WITHIFNOTNULL_OPTION_NAME, getMessage("withIfNotNullUsage"), n, maxOptionLength);
+		appendOption(retval, NOPUBLICCONSTRUCTOR_OPTION_NAME, getMessage("builderWithoutPublicConstructor"), n, maxOptionLength);
+		appendOption(retval, SKIPCOLLECTIONS_OPTION_NAME, getMessage("leaveCollectionsMutable"), n, maxOptionLength);
+		appendOption(retval, PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME, getMessage("publicConstructorMaxArgs"), n, maxOptionLength);
+		appendOption(retval, CONSTRUCTORDEFAULTS_OPTION_NAME, getMessage("setDefaultValuesInConstructor"), n, maxOptionLength);
 		return retval.toString();
 	}
+
+    private void appendOption(StringBuilder retval, String option, String description, String n, int optionColumnWidth) {
+        retval.append("  ");
+        retval.append(option);
+        for (int i=option.length(); i < optionColumnWidth; i++) {
+            retval.append(' ');
+        }
+        retval.append(" :  ");
+        retval.append(description);
+        retval.append(n);
+    }
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
 		if (args[i].startsWith(BUILDER_OPTION_NAME)) {
 			this.createBuilder = true;
+			return 1;
+		}
+		if (args[i].startsWith(INHERIT_BUILDER_OPTION_NAME)) {
+			this.createBuilder = true;
+			this.builderInheritance = true;
 			return 1;
 		}
 		if (args[i].startsWith(CCONSTRUCTOR_OPTION_NAME)) {
@@ -240,51 +257,64 @@ public final class PluginImpl extends Plugin {
 		return MessageFormat.format(resourceBundle.getString(key), args);
 	}
 
-	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
+	private JDefinedClass addBuilderClass(ClassOutline clazz, FieldOutline[] declaredFields, FieldOutline[] unhandledSuperclassFields, FieldOutline[] allSuperclassFields) {
 		JDefinedClass builderClass = generateBuilderClass(clazz.implClass);
 		if (builderClass == null) {
 			return null;
 		}
-		for (FieldOutline field : declaredFields) {
-			addProperty(builderClass, field);
-			JMethod unconditionalWithMethod = addWithMethod(builderClass, field);
-			if (createWithIfNotNullMethod) {
-				addWithIfNotNullMethod(builderClass, field, unconditionalWithMethod);
-			}
-			if (field.getPropertyInfo().isCollection()) {
-				addAddMethod(builderClass, field);
-			}
-		}
-		for (FieldOutline field : superclassFields) {
-			addProperty(builderClass, field);
-			JMethod unconditionalWithMethod = addWithMethod(builderClass, field);
-			if (createWithIfNotNullMethod) {
-				addWithIfNotNullMethod(builderClass, field, unconditionalWithMethod);
-			}
-			if (field.getPropertyInfo().isCollection()) {
-				addAddMethod(builderClass, field);
+        addBuilderMethodsForFields(builderClass, declaredFields);
+        // handle all superclass fields not handled by any superclass builder
+        addBuilderMethodsForFields(builderClass, unhandledSuperclassFields);
+        if (builderInheritance) {
+			// re-type inherited builder methods
+			for (int i=0; i < allSuperclassFields.length - unhandledSuperclassFields.length; i++) {
+				FieldOutline inheritedField = allSuperclassFields[i];
+				JMethod unconditionalWithMethod = addWithMethod(builderClass, inheritedField, true);
+				if (createWithIfNotNullMethod) {
+					addWithIfNotNullMethod(builderClass, inheritedField, unconditionalWithMethod, true);
+				}
+				if (inheritedField.getPropertyInfo().isCollection()) {
+					addAddMethod(builderClass, inheritedField, true);
+				}
 			}
 		}
 		addNewBuilder(clazz, builderClass);
 		if (createCConstructor) {
 			addNewBuilderCc(clazz, builderClass);
 		}
-		addBuildMethod(clazz.implClass, builderClass, declaredFields, superclassFields);
+		addBuildMethod(clazz.implClass, builderClass, declaredFields, allSuperclassFields);
 		return builderClass;
 	}
 
-	private JVar addProperty(JDefinedClass clazz, FieldOutline field) {
+    private void addBuilderMethodsForFields(JDefinedClass builderClass, FieldOutline[] declaredFields) {
+        for (FieldOutline field : declaredFields) {
+            addProperty(builderClass, field);
+            JMethod unconditionalWithMethod = addWithMethod(builderClass, field, false);
+            if (createWithIfNotNullMethod) {
+                addWithIfNotNullMethod(builderClass, field, unconditionalWithMethod, false);
+            }
+            if (field.getPropertyInfo().isCollection()) {
+                addAddMethod(builderClass, field, false);
+            }
+        }
+    }
+
+    private JVar addProperty(JDefinedClass clazz, FieldOutline field) {
 		JType jType = getJavaType(field);
+		int builderFieldVisibility = builderInheritance ? JMod.PROTECTED : JMod.PRIVATE;
 		if (field.getPropertyInfo().isCollection()) {
-			return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false),
+			return clazz.field(builderFieldVisibility, jType, field.getPropertyInfo().getName(false),
 					getNewCollectionExpression(field.parent().implClass.owner(), jType));
 		} else {
-			return clazz.field(JMod.PRIVATE, jType, field.getPropertyInfo().getName(false));
+			return clazz.field(builderFieldVisibility, jType, field.getPropertyInfo().getName(false));
 		}
 	}
 
 	private JMethod addBuildMethod(JDefinedClass clazz, JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		JMethod method = builderClass.method(JMod.PUBLIC, clazz, "build");
+		if (hasSuperClass(builderClass)) {
+			method.annotate(Override.class);
+		}
 		JInvocation constructorInvocation = JExpr._new(clazz);
 		for (FieldOutline field : superclassFields) {
 			constructorInvocation.arg(JExpr.ref(field.getPropertyInfo().getName(false)));
@@ -297,36 +327,42 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void addNewBuilder(ClassOutline clazz, JDefinedClass builderClass) {
-		boolean superClassWithSameName = false;
-		ClassOutline superclass = clazz.getSuperClass();
-		while (superclass != null) {
-			if (superclass.implClass.name().equals(clazz.implClass.name())) {
-				superClassWithSameName = true;
-			}
-			superclass = superclass.getSuperClass();
-		}
-		if (!superClassWithSameName) {
-			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass,
-					Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+		if (builderInheritance || !hasSuperClassWithSameName(clazz)) {
+			String builderMethodName = generateBuilderMethodName(clazz);
+			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, builderMethodName);
 			method.body()._return(JExpr._new(builderClass));
 		}
 	}
 
 	private void addNewBuilderCc(ClassOutline clazz, JDefinedClass builderClass) {
-		boolean superClassWithSameName = false;
-		ClassOutline superclass = clazz.getSuperClass();
-		while (superclass != null) {
-			if (superclass.implClass.name().equals(clazz.implClass.name())) {
-				superClassWithSameName = true;
-			}
-			superclass = superclass.getSuperClass();
-		}
-		if (!superClassWithSameName) {
-			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass,
-					Introspector.decapitalize(clazz.implClass.name()) + "Builder");
+		if (builderInheritance || !hasSuperClassWithSameName(clazz)) {
+			String builderMethodName = generateBuilderMethodName(clazz);
+			JMethod method = clazz.implClass.method(JMod.PUBLIC | JMod.STATIC, builderClass, builderMethodName);
 			JVar param = method.param(JMod.FINAL, clazz.implClass, "o");
 			method.body()._return(JExpr._new(builderClass).arg(param));
 		}
+	}
+
+	private String generateBuilderMethodName(ClassOutline clazz) {
+		if (isUseSimpleBuilderName()) {
+			return "builder";
+		}
+		return Introspector.decapitalize(clazz.implClass.name()) + "Builder";
+	}
+
+	private boolean isUseSimpleBuilderName() {
+		return builderInheritance;
+	}
+
+	private boolean hasSuperClassWithSameName(ClassOutline clazz) {
+		ClassOutline superclass = clazz.getSuperClass();
+		while (superclass != null) {
+			if (superclass.implClass.name().equals(clazz.implClass.name())) {
+				return true;
+			}
+			superclass = superclass.getSuperClass();
+		}
+		return false;
 	}
 
 	private Object addPropertyContructor(JDefinedClass clazz, FieldOutline[] declaredFields, FieldOutline[] superclassFields, int constAccess) {
@@ -357,28 +393,38 @@ public final class PluginImpl extends Plugin {
 		return ctor;
 	}
 
-	private JMethod addWithMethod(JDefinedClass builderClass, FieldOutline field) {
+	private JMethod addWithMethod(JDefinedClass builderClass, FieldOutline field, boolean inherit) {
 		String fieldName = field.getPropertyInfo().getName(true);
 		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName);
-		generatePropertyAssignment(method, field);
-		method.body()._return(JExpr.direct("this"));
+		if (inherit) {
+			generateMethodParameter(method, field);
+			generateSuperCall(method);
+		} else {
+			generatePropertyAssignment(method, field);
+		}
+		method.body()._return(JExpr._this());
 		return method;
 	}
 
-	private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field, JMethod unconditionalWithMethod) {
+	private JMethod addWithIfNotNullMethod(JDefinedClass builderClass, FieldOutline field, JMethod unconditionalWithMethod, boolean inherit) {
 		if (field.getRawType().isPrimitive())
 			return null;
 		String fieldName = field.getPropertyInfo().getName(true);
 		JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "with" + fieldName + "IfNotNull");
 		JVar param = generateMethodParameter(method, field);
 		JBlock block = method.body();
-		JConditional conditional = block._if(param.eq(JExpr._null()));
-		conditional._then()._return(JExpr.direct("this"));
-		conditional._else()._return(JExpr.invoke(unconditionalWithMethod).arg(param));
+		if (inherit) {
+			generateSuperCall(method);
+			method.body()._return(JExpr._this());
+		} else {
+			JConditional conditional = block._if(param.eq(JExpr._null()));
+			conditional._then()._return(JExpr._this());
+			conditional._else()._return(JExpr.invoke(unconditionalWithMethod).arg(param));
+		}
 		return method;
 	}
 
-	private JMethod addAddMethod(JDefinedClass builderClass, FieldOutline field) {
+	private JMethod addAddMethod(JDefinedClass builderClass, FieldOutline field, boolean inherit) {
 		List<JClass> typeParams = ((JClass) getJavaType(field)).getTypeParameters();
 		if (!typeParams.iterator().hasNext()) {
 			return null;
@@ -387,21 +433,68 @@ public final class PluginImpl extends Plugin {
 		JBlock block = method.body();
 		String fieldName = field.getPropertyInfo().getName(false);
 		JVar param = method.param(JMod.FINAL, typeParams.iterator().next(), fieldName);
-		JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
-		block.add(invocation);
-		block._return(JExpr.direct("this"));
+		if (inherit) {
+			generateSuperCall(method);
+		} else {
+			JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
+			block.add(invocation);
+		}
+		block._return(JExpr._this());
 		return method;
+	}
+
+	private void generateSuperCall(JMethod method) {
+		method.annotate(Override.class);
+		JBlock block = method.body();
+		JInvocation superInvocation = block.invoke(JExpr._super(), method);
+		for (JVar param : method.params()) {
+			superInvocation.arg(param);
+		}
 	}
 
 	private JDefinedClass generateBuilderClass(JDefinedClass clazz) {
 		JDefinedClass builderClass = null;
-		String builderClassName = clazz.name() + "Builder";
+		String builderClassName = getBuilderClassName(clazz);
 		try {
 			builderClass = clazz._class(JMod.PUBLIC | JMod.STATIC, builderClassName);
+			if (builderInheritance) {
+				for (JClass superClass = clazz._extends(); superClass != null; superClass = superClass._extends()) {
+					JClass superClassBuilderClass = getBuilderClass(superClass);
+					if (superClassBuilderClass != null) {
+						builderClass._extends(superClassBuilderClass);
+						break;
+					}
+				}
+			}
 		} catch (JClassAlreadyExistsException e) {
 			this.log(Level.WARNING, "builderClassExists", builderClassName);
 		}
 		return builderClass;
+	}
+
+	private String getBuilderClassName(JClass clazz) {
+		if (isUseSimpleBuilderName()) {
+			return "Builder";
+		}
+		return clazz.name() + "Builder";
+	}
+
+	private JClass getBuilderClass(JClass clazz) {
+		//Current limitation: this only works for classes from this model / outline, i.e. that are part of this generator run
+		if (!createBuilder || clazz.isAbstract()) {
+			return null;
+		}
+		String builderClassName = getBuilderClassName(clazz);
+		if (clazz instanceof JDefinedClass) {
+			JDefinedClass definedClass = (JDefinedClass)clazz;
+			for (Iterator<JDefinedClass> i = definedClass.classes(); i.hasNext();) {
+				JDefinedClass innerClass = (JDefinedClass)i.next();
+				if (builderClassName.equals(innerClass.name())) {
+					return innerClass;
+				}
+			}
+		}
+		return null;
 	}
 
 	private void replaceCollectionGetter(FieldOutline field, final JMethod getter) {
@@ -655,10 +748,14 @@ public final class PluginImpl extends Plugin {
 	private JMethod generateCopyConstructor(final JDefinedClass clazz, final JDefinedClass builderClass, FieldOutline[] declaredFields, FieldOutline[] superclassFields) {
 		final JMethod ctor = createConstructor(builderClass, JMod.PUBLIC);
 		final JVar o = ctor.param(JMod.FINAL, clazz, "o");
-		ctor.body()._if(o.eq(JExpr._null()))._then()
-				._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
-						.arg("Cannot create a copy of '" + builderClass.name() + "' from 'null'."));
-
+		if (hasSuperClass(builderClass)) {
+			ctor.body().invoke("super").arg(o);
+		} else {
+			String builderName = isUseSimpleBuilderName() ? String.format("%s.%s", clazz.name(), builderClass.name()) : builderClass.name();
+			ctor.body()._if(o.eq(JExpr._null()))._then()
+					._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
+							.arg("Cannot create a copy of '" + builderName + "' from 'null'."));
+		}
 		JCodeModel codeModel = clazz.owner();
 
 		for (FieldOutline field : superclassFields) {
@@ -687,6 +784,11 @@ public final class PluginImpl extends Plugin {
 			}
 		}
 		return ctor;
+	}
+
+	private boolean hasSuperClass(final JDefinedClass builderClass) {
+		// we have to account for java.lang.Object, which we don't care about...
+		return builderClass._extends() != null && builderClass._extends()._extends() != null;
 	}
 
 	private JMethod getPropertyGetter(final FieldOutline f) {
@@ -800,5 +902,30 @@ public final class PluginImpl extends Plugin {
 			superclassFields.addAll(Arrays.asList(classOutline.getDeclaredFields()));
 		}
 		return superclassFields.toArray(new FieldOutline[superclassFields.size()]);
+	}
+
+	private FieldOutline[] getUnhandledSuperclassFields(ClassOutline clazz, FieldOutline[] superclassFields) {
+		if (!builderInheritance) {
+			//we want to handle all inherited field
+			return superclassFields;
+		}
+
+		// we only need fields whose classes don't have a builder themselves...
+		// superclassFields are in class reverse order, i.e. root class first, direct superclass last, cf. #getSuperclassFields(ClassOutline)
+		for (int i = superclassFields.length - 1; i >= 0; i--) {
+			FieldOutline superclassField = superclassFields[i];
+			ClassOutline superClass = superclassField.parent();
+			if (getBuilderClass(superClass.implClass) != null) {
+				// this class has its own builder, so we can stop here...
+				if (i == superclassFields.length - 1) {
+					return new FieldOutline[0];
+				}
+				FieldOutline[] handledSuperclassFields = new FieldOutline[superclassFields.length - i - 1];
+				System.arraycopy(superclassFields, i + 1, handledSuperclassFields, 0, handledSuperclassFields.length);
+				return handledSuperclassFields;
+			}
+		}
+		// no superclass with a builder, so we actually need them all...
+		return superclassFields;
 	}
 }
