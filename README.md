@@ -44,10 +44,10 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 #### 1.0.5
 * xsd polymorphism compilation problems fixed
 
-###JAXB Versions
+### JAXB Versions
 Plugin is built against JAXB 2.3.1
 
-###Java versions
+### Java versions
 Target Java versions is 1.8, JAXB dependencies are set to be able to built with JDK 11+. 
 
 ### XJC options provided by the plugin
