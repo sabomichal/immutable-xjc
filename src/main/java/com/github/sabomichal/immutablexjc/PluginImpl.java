@@ -14,7 +14,6 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.model.CAdapter;
@@ -33,7 +32,6 @@ import org.xml.sax.ErrorHandler;
 
 import javax.activation.MimeType;
 import java.beans.Introspector;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +59,7 @@ import java.util.logging.Level;
 public final class PluginImpl extends Plugin {
 
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
+	private static final String USESIMPLEBUILDERNAME_OPTION_NAME = "-imm-simplebuildername";
 	private static final String INHERIT_BUILDER_OPTION_NAME = "-imm-inheritbuilder";
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
@@ -84,6 +83,7 @@ public final class PluginImpl extends Plugin {
 	private int publicConstructorMaxArgs = Integer.MAX_VALUE;
 	private boolean leaveCollectionsMutable;
 	private boolean setDefaultValuesInConstructor;
+	private boolean useSimpleBuilderName;
 	private Options options;
 
 	@Override
@@ -95,7 +95,7 @@ public final class PluginImpl extends Plugin {
 
 		List<? extends ClassOutline> classes = new ArrayList<ClassOutline>(model.getClasses());
 		if (builderInheritance) {
-			Collections.sort(classes, new Comparator<ClassOutline>() {
+			classes.sort(new Comparator<ClassOutline>() {
 				@Override
 				public int compare(ClassOutline o1, ClassOutline o2) {
 					if (isSubClass(o1, o2)) {
@@ -110,7 +110,7 @@ public final class PluginImpl extends Plugin {
 				private boolean isSubClass(ClassOutline o1, ClassOutline o2) {
 					boolean isSubClass = false;
 					ClassOutline superClass = o1.getSuperClass();
-					while(superClass != null && superClass != o2) {
+					while (superClass != null && superClass != o2) {
 						superClass = superClass.getSuperClass();
 					}
 					if (superClass == o2) {
@@ -145,7 +145,6 @@ public final class PluginImpl extends Plugin {
 					}
 				}
 			}
-			// implClass.direct("// " + getMessage("title"));
 			makeClassFinal(implClass);
 			removeSetters(implClass);
 			makePropertiesPrivate(implClass);
@@ -179,6 +178,7 @@ public final class PluginImpl extends Plugin {
 		}
 
 		this.options = null;
+
 		return success;
 	}
 
@@ -194,6 +194,7 @@ public final class PluginImpl extends Plugin {
 		StringBuilder retval = new StringBuilder();
 		appendOption(retval, "-"+OPTION_NAME, getMessage("usage"), n, maxOptionLength);
 		appendOption(retval, BUILDER_OPTION_NAME, getMessage("builderUsage"), n, maxOptionLength);
+		appendOption(retval, USESIMPLEBUILDERNAME_OPTION_NAME, getMessage("simpleBuilderNameUsage"), n, maxOptionLength);
 		appendOption(retval, INHERIT_BUILDER_OPTION_NAME, getMessage("inheritBuilderUsage"), n, maxOptionLength);
 		appendOption(retval, CCONSTRUCTOR_OPTION_NAME, getMessage("cConstructorUsage"), n, maxOptionLength);
 		appendOption(retval, WITHIFNOTNULL_OPTION_NAME, getMessage("withIfNotNullUsage"), n, maxOptionLength);
@@ -216,9 +217,13 @@ public final class PluginImpl extends Plugin {
     }
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
+	public int parseArgument(final Options opt, final String[] args, final int i) {
 		if (args[i].startsWith(BUILDER_OPTION_NAME)) {
 			this.createBuilder = true;
+			return 1;
+		}
+		if (args[i].startsWith(USESIMPLEBUILDERNAME_OPTION_NAME)) {
+			this.useSimpleBuilderName = true;
 			return 1;
 		}
 		if (args[i].startsWith(INHERIT_BUILDER_OPTION_NAME)) {
@@ -351,7 +356,7 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private boolean isUseSimpleBuilderName() {
-		return builderInheritance;
+		return useSimpleBuilderName;
 	}
 
 	private boolean hasSuperClassWithSameName(ClassOutline clazz) {
@@ -488,7 +493,7 @@ public final class PluginImpl extends Plugin {
 		if (clazz instanceof JDefinedClass) {
 			JDefinedClass definedClass = (JDefinedClass)clazz;
 			for (Iterator<JDefinedClass> i = definedClass.classes(); i.hasNext();) {
-				JDefinedClass innerClass = (JDefinedClass)i.next();
+				JDefinedClass innerClass = i.next();
 				if (builderClassName.equals(innerClass.name())) {
 					return innerClass;
 				}
@@ -760,7 +765,7 @@ public final class PluginImpl extends Plugin {
 
 		for (FieldOutline field : superclassFields) {
 			String propertyName = field.getPropertyInfo().getName(false);
-			JMethod getter = getPropertyGetter(field);
+			JMethod getter = getGetterProperty(field);
 
 			if (field.getPropertyInfo().isCollection()) {
 				JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
@@ -789,18 +794,6 @@ public final class PluginImpl extends Plugin {
 	private boolean hasSuperClass(final JDefinedClass builderClass) {
 		// we have to account for java.lang.Object, which we don't care about...
 		return builderClass._extends() != null && builderClass._extends()._extends() != null;
-	}
-
-	private JMethod getPropertyGetter(final FieldOutline f) {
-		final JDefinedClass clazz = f.parent().implClass;
-		final String name = f.getPropertyInfo().getName(true);
-		JMethod getter = clazz.getMethod("get" + name, NO_ARGS);
-
-		if (getter == null) {
-			getter = clazz.getMethod("is" + name, NO_ARGS);
-		}
-
-		return getter;
 	}
 
 	private JMethod createConstructor(final JDefinedClass clazz, final int visibility) {
@@ -888,7 +881,7 @@ public final class PluginImpl extends Plugin {
 
 	private FieldOutline[] getSuperclassFields(ClassOutline clazz) {
 		// first get all superclasses
-		List<ClassOutline> superclasses = new ArrayList<ClassOutline>();
+		List<ClassOutline> superclasses = new ArrayList<>();
 		ClassOutline superclass = clazz.getSuperClass();
 		while (superclass != null) {
 			superclasses.add(superclass);
@@ -896,12 +889,12 @@ public final class PluginImpl extends Plugin {
 		}
 
 		// get all fields in class reverse order
-		List<FieldOutline> superclassFields = new ArrayList<FieldOutline>();
+		List<FieldOutline> superclassFields = new ArrayList<>();
 		Collections.reverse(superclasses);
 		for (ClassOutline classOutline : superclasses) {
 			superclassFields.addAll(Arrays.asList(classOutline.getDeclaredFields()));
 		}
-		return superclassFields.toArray(new FieldOutline[superclassFields.size()]);
+		return superclassFields.toArray(new FieldOutline[0]);
 	}
 
 	private FieldOutline[] getUnhandledSuperclassFields(ClassOutline clazz, FieldOutline[] superclassFields) {
