@@ -59,7 +59,7 @@ import java.util.logging.Level;
 public final class PluginImpl extends Plugin {
 
 	private static final String BUILDER_OPTION_NAME = "-imm-builder";
-	private static final String USESIMPLEBUILDERNAME_OPTION_NAME = "-imm-simplebuildername";
+	private static final String SIMPLEBUILDERNAME_OPTION_NAME = "-imm-simplebuildername";
 	private static final String INHERIT_BUILDER_OPTION_NAME = "-imm-inheritbuilder";
 	private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
 	private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
@@ -194,7 +194,7 @@ public final class PluginImpl extends Plugin {
 		StringBuilder retval = new StringBuilder();
 		appendOption(retval, "-"+OPTION_NAME, getMessage("usage"), n, maxOptionLength);
 		appendOption(retval, BUILDER_OPTION_NAME, getMessage("builderUsage"), n, maxOptionLength);
-		appendOption(retval, USESIMPLEBUILDERNAME_OPTION_NAME, getMessage("simpleBuilderNameUsage"), n, maxOptionLength);
+		appendOption(retval, SIMPLEBUILDERNAME_OPTION_NAME, getMessage("simpleBuilderNameUsage"), n, maxOptionLength);
 		appendOption(retval, INHERIT_BUILDER_OPTION_NAME, getMessage("inheritBuilderUsage"), n, maxOptionLength);
 		appendOption(retval, CCONSTRUCTOR_OPTION_NAME, getMessage("cConstructorUsage"), n, maxOptionLength);
 		appendOption(retval, WITHIFNOTNULL_OPTION_NAME, getMessage("withIfNotNullUsage"), n, maxOptionLength);
@@ -222,7 +222,7 @@ public final class PluginImpl extends Plugin {
 			this.createBuilder = true;
 			return 1;
 		}
-		if (args[i].startsWith(USESIMPLEBUILDERNAME_OPTION_NAME)) {
+		if (args[i].startsWith(SIMPLEBUILDERNAME_OPTION_NAME)) {
 			this.useSimpleBuilderName = true;
 			return 1;
 		}
