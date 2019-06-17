@@ -24,7 +24,7 @@
 		<xs:complexContent>
 			<xs:extension base="Variable">
 				<xs:sequence>
-					<xs:element name="documentation" type="xs:string" minOccurs="0"/>
+					<xs:element name="documentation" type="xs:string" minOccurs="0" default="test"/>
 				</xs:sequence>
 				<xs:attribute name="type" type="xs:string" use="required"/>
 			</xs:extension>
