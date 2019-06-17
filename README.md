@@ -39,6 +39,12 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 #### 1.0.5
 * xsd polymorphism compilation problems fixed
 
+###JAXB Versions
+Plugin is built against JAXB 2.3.1
+
+###Java versions
+Target Java versions is 1.8, JAXB dependencies are set to be able to built with JDK 11+. 
+
 ### XJC options provided by the plugin
 The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled, additional options can be used to control the behavior of the plugin. See the examples for further information.
 
