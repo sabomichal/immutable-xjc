@@ -17,7 +17,7 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 * added an option to set default values in no-arg constructors
 * added an option to generate builder classes that follow the same inheritance hierarchy as their subject classes
 * added an option to generate simple builder names
-* dropped support for java 7
+* dropped support for java 6
 #### 1.5
 * added an option to leave collections mutable
 * added an option to generate public constructors only up to n arguments when builder is used
