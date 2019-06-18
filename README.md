@@ -95,7 +95,6 @@ java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true\
                     jaxb-xjc-2.3.1.jar:\
                     javax.activation-api-1.2.0.jar:\
                     javax.activation-1.2.0.jar:\
-                    xsom-2.3.1.jar:\
                     rngom-2.3.1.jar:\
                     istack-commons-tools-3.0.7.jar:\
                     istack-commons-runtime-3.0.7.jar:\
