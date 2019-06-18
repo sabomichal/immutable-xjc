@@ -88,7 +88,19 @@ The '-imm-constructordefaults' option is used to set default values for xs:eleme
 #### JAXB-RI CLI
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.XJCFacade'. The following example demonstrates a working command line for use with JDK 11+ (assuming the needed dependencies are found in the current working directory).
 ```sh
-java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true -classpath "codemodel-2.3.1.jar;jaxb-api-2.3.1.jar;jaxb-runtime-2.3.1.jar;jaxb-xjc-2.3.1.jar;javax.activation-api-1.2.0.jar;javax.activation-1.2.0.jar;xsom-2.3.1.jar;rngom-2.3.1.jar;istack-commons-tools-3.0.7.jar;istack-commons-runtime-3.0.7.jar;relaxng-datatype-2.3.1.jar;txw2-2.3.1.jar;xsom-2.3.1.jar" com.sun.tools.xjc.XJCFacade -immutable basic.xsd
+java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true\ 
+         -classpath   codemodel-2.3.1.jar:\
+                      jaxb-api-2.3.1.jar:\
+                      jaxb-runtime-2.3.1.jar:\
+                      jaxb-xjc-2.3.1.jar:\
+                      javax.activation-api-1.2.0.jar:\
+                      javax.activation-1.2.0.jar:\
+                      xsom-2.3.1.jar:\
+                      rngom-2.3.1.jar:\
+                      istack-commons-tools-3.0.7.jar:\
+                      istack-commons-runtime-3.0.7.jar:\
+                      relaxng-datatype-2.3.1.jar:\
+                      txw2-2.3.1.jar;xsom-2.3.1.jar com.sun.tools.xjc.XJCFacade -immutable <schema files>
 ```
 #### Maven
 Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *maven-jaxb2-plugin*.
