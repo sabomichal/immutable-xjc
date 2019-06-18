@@ -100,7 +100,8 @@ java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true\
                     istack-commons-tools-3.0.7.jar:\
                     istack-commons-runtime-3.0.7.jar:\
                     relaxng-datatype-2.3.1.jar:\
-                    txw2-2.3.1.jar;xsom-2.3.1.jar com.sun.tools.xjc.XJCFacade -immutable <schema files>
+                    txw2-2.3.1.jar:\
+                    xsom-2.3.1.jar com.sun.tools.xjc.XJCFacade -immutable <schema files>
 ```
 #### Maven
 Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *maven-jaxb2-plugin*.
