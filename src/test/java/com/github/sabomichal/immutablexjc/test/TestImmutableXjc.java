@@ -1,14 +1,18 @@
 package com.github.sabomichal.immutablexjc.test;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Test;
+
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Declaration;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Model;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.NameExpression;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Parameters;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Variable;
 
 
 /**
@@ -27,27 +31,27 @@ public class TestImmutableXjc {
 
     @Test
     public void testMarshall() throws Exception {
-        Model.ModelBuilder modelBuilder = Model.modelBuilder()
-                .withParameters(Parameters.parametersBuilder()
-                        .addParameter(Declaration.declarationBuilder()
+        Model.Builder modelBuilder = Model.builder()
+                .withParameters(Parameters.builder()
+                        .addParameter(Declaration.builder()
                                 .withType("type")
                                 .withName("name")
                                 .withDocumentation("doc")
-                                .addBy(NameExpression.nameExpressionBuilder()
+                                .addBy(NameExpression.builder()
                                         .withName("x")
                                         .build())
-                                .addBy(NameExpression.nameExpressionBuilder()
+                                .addBy(NameExpression.builder()
                                         .withName("y")
                                         .build())
                                 .build())
-                        .addParameter(Declaration.declarationBuilder()
+                        .addParameter(Declaration.builder()
                                 .withType("type")
                                 .withName("name")
                                 .withDocumentation("doc")
-                                .addBy(NameExpression.nameExpressionBuilder()
+                                .addBy(NameExpression.builder()
                                         .withName("x")
                                         .build())
-                                .addBy(NameExpression.nameExpressionBuilder()
+                                .addBy(NameExpression.builder()
                                         .withName("y")
                                         .build())
                                 .build())
@@ -56,7 +60,7 @@ public class TestImmutableXjc {
         Model model = modelBuilder.build();
         assertNotNull(model);
 
-        Model.ModelBuilder copy = Model.modelBuilder(modelBuilder.build());
+        Model.Builder copy = Model.builder(modelBuilder.build());
         assertNotNull(copy.build());
 
         JAXBContext jc = JAXBContext.newInstance(Model.class);
@@ -66,7 +70,7 @@ public class TestImmutableXjc {
         marshaller.marshal(copy.build(), System.out);
 
         try {
-            model.getParameters().getParameter().add(0, new Declaration.DeclarationBuilder().withType("type").build());
+            model.getParameters().getParameter().add(0, new Declaration.Builder().withType("type").build());
             fail("Expected an UnsupportedOperationException to be thrown");
         } catch (UnsupportedOperationException e) {
             assertNotNull(e);
@@ -75,36 +79,36 @@ public class TestImmutableXjc {
 
     @Test
     public void testCollectionsAreImmutable() {
-        Declaration d1 = Declaration.declarationBuilder()
+        Declaration d1 = Declaration.builder()
                 .withType("type")
                 .withName("name")
                 .withDocumentation("doc")
-                .addBy(NameExpression.nameExpressionBuilder()
+                .addBy(NameExpression.builder()
                         .withName("x")
                         .build())
-                .addBy(NameExpression.nameExpressionBuilder()
+                .addBy(NameExpression.builder()
                         .withName("y")
                         .build())
                 .build();
         assertNotNull(d1);
 
-        Parameters p1 = Parameters.parametersBuilder()
+        Parameters p1 = Parameters.builder()
                         .addParameter(d1)
                         .build();
         assertNotNull(p1);
 
         assertTrue(p1.getParameter().contains(d1));
 
-        Parameters.ParametersBuilder b1 = Parameters.parametersBuilder(p1);
+        Parameters.Builder b1 = Parameters.builder(p1);
 
-        Declaration d2 = Declaration.declarationBuilder()
+        Declaration d2 = Declaration.builder()
                 .withType("type")
                 .withName("name")
                 .withDocumentation("doc")
-                .addBy(NameExpression.nameExpressionBuilder()
+                .addBy(NameExpression.builder()
                         .withName("x")
                         .build())
-                .addBy(NameExpression.nameExpressionBuilder()
+                .addBy(NameExpression.builder()
                         .withName("y")
                         .build())
                 .build();
@@ -116,5 +120,51 @@ public class TestImmutableXjc {
 
         assertTrue(p2.getParameter().contains(d2));
         assertTrue(!p1.getParameter().contains(d2));
+    }
+
+    @Test
+    public void testSuperclassBuilderIsInherited() {
+       // This doesn't really test all that much. It will mostly cause compile errors if the builders do not use inheritance
+       Variable.Builder builder = Declaration.builder();
+       Variable variable = builder
+             .withName("name")
+             .addBy(NameExpression.builder()
+                      .withName("x")
+                      .build())
+             .build();
+       assertTrue(variable instanceof Declaration);
+    }
+
+    @Test
+    public void testSubclassBuilderNarrowsSuperclassBuilderMethods() {
+       // This doesn't really test all that much. It will mostly cause compile errors if builders do not properly narrow the return type of inherited fluent methods.
+       // This only works if the inherited method's return type has been narrowed from Variable.Builder to Declaration.Builder:
+       Declaration.builder()
+             .withName("name") // inherited Variable.Builder method
+             .withType("type") // declared builder method 
+             .build();
+    }
+
+    @Test
+    public void testSubclassBuilderCopiesSuperclassProperties() {
+       Declaration d1 = Declaration.builder()
+             .withType("type")
+             .withName("name")
+             .withDocumentation("doc")
+             .addBy(NameExpression.builder()
+                     .withName("x")
+                     .build())
+             .addBy(NameExpression.builder()
+                     .withName("y")
+                     .build())
+             .build();
+       Declaration d2 = Declaration.builder(d1).build();
+       
+       assertNotNull(d2);
+       assertEquals(d1.getName(), d2.getName());
+       assertEquals(d1.getType(), d2.getType());
+       assertEquals(d1.getDocumentation(), d2.getDocumentation());
+       assertNotNull(d2.getBy());
+       assertEquals(d1.getBy(), d2.getBy());
     }
 }
