@@ -1,6 +1,7 @@
 package com.github.sabomichal.immutablexjc;
 
 import java.beans.Introspector;
+import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.SortedMap;
@@ -19,11 +21,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
-import javax.activation.MimeType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.ErrorHandler;
 
+import com.sun.codemodel.JAnnotationUse;
+import com.sun.codemodel.JAnnotationValue;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -33,6 +35,7 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -40,18 +43,8 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
-import com.sun.tools.xjc.model.CAdapter;
-import com.sun.tools.xjc.model.CDefaultValue;
-import com.sun.tools.xjc.model.CNonElement;
-import com.sun.tools.xjc.model.CTypeInfo;
-import com.sun.tools.xjc.model.TypeUse;
 import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-import com.sun.xml.bind.v2.model.core.ID;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XmlString;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
@@ -649,81 +642,20 @@ public final class PluginImpl extends Plugin {
 		block.assign(JExpr.refthis(propertyName), defaultValue(fieldOutline));
 	}
 
-	private JExpression defaultValueNew(JType javaType, FieldOutline fieldOutline) {
-		if(setDefaultValuesInConstructor) {
-			//try to find default value for element
-			if (fieldOutline.getPropertyInfo().defaultValue == null
-					&& fieldOutline.getPropertyInfo().getSchemaComponent() instanceof XSParticle) {
-				XSParticle part = (XSParticle) fieldOutline.getPropertyInfo().getSchemaComponent();
-				if (part.getTerm().isElementDecl()) {
-					XSElementDecl elem = part.getTerm().asElementDecl();
-					if (elem.getDefaultValue() != null) {
-						TypeUse typeUse = null;
-						final CAdapter ad = fieldOutline.getPropertyInfo().getAdapter();
-						for (CTypeInfo cti : fieldOutline.getPropertyInfo().ref()) {
-							if (cti instanceof TypeUse) {
-								if(ad!=null){
-									final CNonElement cti2 = (CNonElement) cti;
-									typeUse = new TypeUse() {
-										@Override
-										public boolean isCollection() {
-											return false;
-										}
-
-										@Override
-										public CAdapter getAdapterUse() {
-											return null;
-										}
-
-										@Override
-										public CNonElement getInfo() {
-											return null;
-										}
-
-										@Override
-										public ID idUse() {
-											return null;
-										}
-
-										@Override
-										public MimeType getExpectedMimeType() {
-											return null;
-										}
-
-										@Override
-										public JExpression createConstant(Outline outline, XmlString lexical) {
-											JExpression cons = cti2.createConstant(outline, lexical);
-											return JExpr._new(ad.getAdapterClass(outline)).invoke("unmarshal").arg(cons);
-										}
-									};
-								} else {
-									typeUse = (TypeUse) cti;
-								}
-								break;
-							}
-						}
-						fieldOutline.getPropertyInfo().defaultValue = CDefaultValue.create(typeUse, elem.getDefaultValue());
-					}
-				}
-			}
-			if (fieldOutline.getPropertyInfo().defaultValue != null) {
-				return fieldOutline.getPropertyInfo().defaultValue.compute(fieldOutline.parent().parent());
-			}
-		}
-		if (javaType.isPrimitive()) {
-			if (fieldOutline.parent().parent().getCodeModel().BOOLEAN.equals(javaType)) {
-				return JExpr.lit(false);
-			} else if (fieldOutline.parent().parent().getCodeModel().SHORT.equals(javaType)) {
-				return JExpr.cast(fieldOutline.parent().parent().getCodeModel().SHORT, JExpr.lit(0));
-			} else {
-				return JExpr.lit(0);
-			}
-		}
-		return JExpr._null();
-	}
-
 	private JExpression defaultValue(JFieldVar fieldOutline) {
 		JType javaType = fieldOutline.type();
+	    if(setDefaultValuesInConstructor) {
+	        Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(fieldOutline.annotations(),"javax.xml.bind.annotation.XmlElement");
+	        if (xmlElementAnnotation.isPresent()) {
+	            JAnnotationValue annotationValue = xmlElementAnnotation.get().getAnnotationMembers().get("defaultValue");
+	            if (annotationValue != null) {
+	                StringWriter sw = new StringWriter();
+	                JFormatter f = new JFormatter(sw);
+	                annotationValue.generate(f);
+	                return JExpr.lit(sw.toString().replaceAll("\"", ""));
+	            }
+	        }
+	    }
 		if (javaType.isPrimitive()) {
 			if (fieldOutline.type().owner().BOOLEAN.equals(javaType)) {
 				return JExpr.lit(false);
@@ -736,7 +668,11 @@ public final class PluginImpl extends Plugin {
 		return JExpr._null();
 	}
 
-	private JMethod generatePropertyConstructor(JDefinedClass clazz, JFieldVar[] declaredFields, JFieldVar[] superclassFields, int constAccess) {
+	private Optional<JAnnotationUse> getAnnotation(Collection<JAnnotationUse> annotations, String clazz) {
+	    return annotations.stream().filter(ann -> ann.getAnnotationClass().fullName().equals(clazz)).findFirst();
+    }
+
+    private JMethod generatePropertyConstructor(JDefinedClass clazz, JFieldVar[] declaredFields, JFieldVar[] superclassFields, int constAccess) {
 		final JMethod ctor = createConstructor(clazz, constAccess);
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
