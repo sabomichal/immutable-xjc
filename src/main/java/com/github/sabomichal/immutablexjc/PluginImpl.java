@@ -22,6 +22,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.xml.sax.ErrorHandler;
 
 import com.sun.codemodel.JAnnotationUse;
@@ -499,11 +500,11 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void replaceCollectionGetter(JFieldVar field, final JMethod getter) {
-		JDefinedClass clazz = (JDefinedClass) field.type();
 		// remove the old getter
-		clazz.methods().remove(getter);
+	    JDefinedClass ownerClass = getOwner(field);
+	    ownerClass.methods().remove(getter);
 		// and create a new one
-		JMethod newGetter = clazz.method(getter.mods().getValue(), getter.type(), getter.name());
+		JMethod newGetter = ownerClass.method(getter.mods().getValue(), getter.type(), getter.name());
 		JBlock block = newGetter.body();
 
 		JVar ret = block.decl(getJavaType(field), "ret");
@@ -535,7 +536,10 @@ public final class PluginImpl extends Plugin {
 			} else {
 				block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 			}
-			replaceCollectionGetter(fieldOutline, getGetterProperty((JDefinedClass) fieldOutline.type(),fieldOutline.name()));
+			JMethod getterMethod = getGetterProperty(fieldName,getOwner(fieldOutline));
+			if (getterMethod != null) {
+			    replaceCollectionGetter(fieldOutline, getterMethod);
+			}
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
@@ -720,7 +724,7 @@ public final class PluginImpl extends Plugin {
 			String propertyName = field.name();
 			JType type = field.type();
 			if (type instanceof JDefinedClass) {
-				JMethod getter = getGetterProperty(clazz ,field.name());
+				JMethod getter = getGetterProperty(field.name() ,clazz);
 				if (isCollection(field)) {
 					JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
 					JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
@@ -771,7 +775,7 @@ public final class PluginImpl extends Plugin {
 		return fieldTypes;
 	}
 
-	private JMethod getGetterProperty(final JDefinedClass clazz, final String name) {
+	private JMethod getGetterProperty(final String name, final JDefinedClass clazz) {
 		JMethod getter = clazz.getMethod("get" + StringUtils.capitalize(name), NO_ARGS);
 		if (getter == null) {
 			getter = clazz.getMethod("is" + StringUtils.capitalize(name), NO_ARGS);
@@ -780,7 +784,7 @@ public final class PluginImpl extends Plugin {
 		if (getter == null) {
 			List<JDefinedClass> superClasses = getSuperClasses(clazz);
 			for (JDefinedClass definedClass : superClasses) {
-				getter = getGetterProperty(definedClass, name);
+				getter = getGetterProperty(name, definedClass);
 
 				if (getter != null) {
 					break;
@@ -875,8 +879,8 @@ public final class PluginImpl extends Plugin {
 		}
 		return superclassFields.stream().toArray(JFieldVar[]::new);
 	}
-
-	private List<JDefinedClass> getSuperClasses(JDefinedClass clazz) {
+	
+	private List<JDefinedClass> getSuperClasses(JClass clazz) {
 		// first get all superclasses
 		List<JDefinedClass> superclasses = new ArrayList<>();
 		JClass superclass = clazz._extends();
@@ -906,8 +910,8 @@ public final class PluginImpl extends Plugin {
         // we only need fields whose classes don't have a builder themselves...
         // superclassFields are in class reverse order, i.e. root class first, direct superclass last, cf. #getSuperclassFields(ClassOutline)
         for (int i = superclassFields.length - 1; i >= 0; i--) {
-            JType type = superclassFields[i].type();
-            if (type instanceof JClass && getBuilderClass((JClass)type) != null) {
+            JDefinedClass type = getOwner(superclassFields[i]);
+            if (type instanceof JClass && getBuilderClass(type) != null) {
                 // this class has its own builder, so we can stop here...
                 if (i == superclassFields.length - 1) {
                     return new JFieldVar[0];
@@ -919,5 +923,15 @@ public final class PluginImpl extends Plugin {
         }
         // no superclass with a builder, so we actually need them all...
         return superclassFields;
+    }
+
+    // owner field is private :-( , we really need this
+    private JDefinedClass getOwner(JFieldVar jFieldVar) {
+        try {
+            return (JDefinedClass) FieldUtils.readField(jFieldVar, "owner",true);
+        }
+        catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
