@@ -123,29 +123,34 @@ public final class PluginImpl extends Plugin {
 			JFieldVar[] declaredFields = getDeclaredFields(implClass);
 			JFieldVar[] superclassFields = getSuperclassFields(implClass);
 
+	        makePropertiesPrivate(implClass);
+	        makePropertiesFinal(implClass, declaredFields);
+	            
 			int declaredFieldsLength = declaredFields.length;
 			int superclassFieldsLength = superclassFields.length;
+			JMethod propertyContructor = null;
 			if (declaredFieldsLength + superclassFieldsLength > 0) {
-				if (addStandardConstructor(implClass, declaredFields, superclassFields) == null) {
-					log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
-				}
-			}
-			if (declaredFieldsLength + superclassFieldsLength > 0) {
-				if (createBuilderWithoutPublicConstructor
+				int mod;
+                if (createBuilderWithoutPublicConstructor 
 						|| (createBuilder && declaredFieldsLength + superclassFieldsLength > publicConstructorMaxArgs)) {
-					if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.NONE) == null) {
-						log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
-					}
+                    mod = JMod.NONE;
 				} else {
-					if (addPropertyContructor(implClass, declaredFields, superclassFields, JMod.PUBLIC) == null) {
-						log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
-					}
+				    mod = JMod.PUBLIC;
 				}
-			}
+                propertyContructor = addPropertyContructor(implClass, declaredFields, superclassFields, mod);
+                if (propertyContructor == null) {
+				    log(Level.WARNING, "couldNotAddPropertyCtor", implClass.binaryName());
+				}
+            }
+            if (propertyContructor == null || !propertyContructor.params().isEmpty()) {
+                if (addStandardConstructor(implClass, declaredFields, superclassFields) == null) {
+                    log(Level.WARNING, "couldNotAddStdCtor", implClass.binaryName());
+                }
+            }
+            
 			makeClassFinal(implClass);
 			removeSetters(implClass);
-			makePropertiesPrivate(implClass);
-			makePropertiesFinal(implClass, declaredFields);
+			replaceCollectionGetters(implClass, declaredFields);
 
 			if (createBuilder) {
 				if (!clazz.implClass.isAbstract()) {
@@ -179,7 +184,7 @@ public final class PluginImpl extends Plugin {
 		return success;
 	}
 
-	@Override
+    @Override
 	public String getOptionName() {
 		return OPTION_NAME;
 	}
@@ -319,10 +324,14 @@ public final class PluginImpl extends Plugin {
 		}
 		JInvocation constructorInvocation = JExpr._new(clazz);
 		for (JFieldVar field : superclassFields) {
-			constructorInvocation.arg(JExpr.ref(field.name()));
+            if (mustAssign(field)) {
+                constructorInvocation.arg(JExpr.ref(field.name()));
+            }
 		}
 		for (JFieldVar field : declaredFields) {
-			constructorInvocation.arg(JExpr.ref(field.name()));
+            if (mustAssign(field)) {
+                constructorInvocation.arg(JExpr.ref(field.name()));
+            }
 		}
 		method.body()._return(constructorInvocation);
 		return method;
@@ -367,7 +376,7 @@ public final class PluginImpl extends Plugin {
 		return false;
 	}
 
-	private Object addPropertyContructor(JDefinedClass clazz, JFieldVar[] declaredFields, JFieldVar[] superclassFields, int constAccess) {
+	private JMethod addPropertyContructor(JDefinedClass clazz, JFieldVar[] declaredFields, JFieldVar[] superclassFields, int constAccess) {
 		JMethod ctor = clazz.getConstructor(getFieldTypes(declaredFields, superclassFields));
 		if (ctor == null) {
 			ctor = this.generatePropertyConstructor(clazz, declaredFields, superclassFields, constAccess);
@@ -499,6 +508,17 @@ public final class PluginImpl extends Plugin {
 		return null;
 	}
 
+   private void replaceCollectionGetters(JDefinedClass implClass, JFieldVar[] declaredFields) {
+        for (JFieldVar fieldOutline : declaredFields) {
+            if (isCollection(fieldOutline) && !leaveCollectionsMutable) {
+                JMethod getterMethod = getGetterProperty(fieldOutline,getOwner(fieldOutline));
+                if (getterMethod != null) {
+                    replaceCollectionGetter(fieldOutline, getterMethod);
+                }
+            }
+        }
+    }
+	   
 	private void replaceCollectionGetter(JFieldVar field, final JMethod getter) {
 		// remove the old getter
 	    JDefinedClass ownerClass = getOwner(field);
@@ -527,19 +547,11 @@ public final class PluginImpl extends Plugin {
 		JCodeModel codeModel = fieldOutline.type().owner();
 		String fieldName = fieldOutline.name();
 		JVar param = generateMethodParameter(method, fieldOutline);
-		if (isCollection(fieldOutline) && !leaveCollectionsMutable) {
-			if (wrapUnmodifiable) {
+		if (isCollection(fieldOutline) && !leaveCollectionsMutable && wrapUnmodifiable) {
 				JConditional conditional = block._if(param.eq(JExpr._null()));
 				conditional._then().assign(JExpr.refthis(fieldName), JExpr._null());
 				conditional._else().assign(JExpr.refthis(fieldName),
 						getDefensiveCopyExpression(codeModel, getJavaType(fieldOutline), param));
-			} else {
-				block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
-			}
-			JMethod getterMethod = getGetterProperty(fieldName,getOwner(fieldOutline));
-			if (getterMethod != null) {
-			    replaceCollectionGetter(fieldOutline, getterMethod);
-			}
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
@@ -681,28 +693,46 @@ public final class PluginImpl extends Plugin {
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
 			for (JFieldVar fieldOutline : superclassFields) {
-				superInvocation.arg(JExpr.ref(fieldOutline.name()));
-				generateMethodParameter(ctor, fieldOutline);
+	            if (mustAssign(fieldOutline)) {
+    				superInvocation.arg(JExpr.ref(fieldOutline.name()));
+    				generateMethodParameter(ctor, fieldOutline);
+	            }
 			}
 		}
 
 		for (JFieldVar fieldOutline : declaredFields) {
-			generatePropertyAssignment(ctor, fieldOutline, true);
+		    if (mustAssign(fieldOutline)) {
+		        generatePropertyAssignment(ctor, fieldOutline, true);
+		    }
 		}
 		return ctor;
 	}
 
+    private boolean mustAssign(JFieldVar field) {
+        // we have to assign final field, except filled collection fields, since we might loose the collection type upon marshal
+        return !(isFinal(field) && isCollection(field) && getInitJExpression(field) != null);
+    }
+
+    private boolean shouldAssign(JFieldVar field) {
+        // we don't want to clear filled collection fields in default constructor, since we might loose the collection type upon marshal
+        return !(isCollection(field) && getInitJExpression(field) != null);
+    }
+    
 	private JMethod generateStandardConstructor(final JDefinedClass clazz, JFieldVar[] declaredFields, JFieldVar[] superclassFields) {
 		final JMethod ctor = createConstructor(clazz, JMod.PROTECTED);
 		ctor.javadoc().add("Used by JAX-B");
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
 			for (JFieldVar fieldOutline : superclassFields) {
-				superInvocation.arg(defaultValue(fieldOutline));
+                if (mustAssign(fieldOutline)) {
+                    superInvocation.arg(defaultValue(fieldOutline));
+                }
 			}
 		}
 		for (JFieldVar fieldOutline : declaredFields) {
-			generateDefaultPropertyAssignment(ctor, fieldOutline);
+	        if (shouldAssign(fieldOutline)) {
+	            generateDefaultPropertyAssignment(ctor, fieldOutline);
+	        }
 		}
 		return ctor;
 	}
@@ -724,7 +754,7 @@ public final class PluginImpl extends Plugin {
 			String propertyName = field.name();
 			JType type = field.type();
 			if (type instanceof JDefinedClass) {
-				JMethod getter = getGetterProperty(field.name() ,clazz);
+				JMethod getter = getGetterProperty(field ,clazz);
 				if (isCollection(field)) {
 					JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
 					JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
@@ -775,26 +805,37 @@ public final class PluginImpl extends Plugin {
 		return fieldTypes;
 	}
 
-	private JMethod getGetterProperty(final String name, final JDefinedClass clazz) {
-		JMethod getter = clazz.getMethod("get" + StringUtils.capitalize(name), NO_ARGS);
+	private JMethod getGetterProperty(final JFieldVar field, final JDefinedClass clazz) {
+		JMethod getter = clazz.getMethod("get" + StringUtils.capitalize(field.name()), NO_ARGS);
 		if (getter == null) {
-			getter = clazz.getMethod("is" + StringUtils.capitalize(name), NO_ARGS);
+			getter = clazz.getMethod("is" + StringUtils.capitalize(field.name()), NO_ARGS);
 		}
 
 		if (getter == null) {
 			List<JDefinedClass> superClasses = getSuperClasses(clazz);
 			for (JDefinedClass definedClass : superClasses) {
-				getter = getGetterProperty(name, definedClass);
+				getter = getGetterProperty(field, definedClass);
 
 				if (getter != null) {
 					break;
 				}
 			}
 		}
+        if (getter == null) {
+            //XJC does not work conform Introspector.decapitalize when multiple upper-case letter are in field name
+            Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(),"javax.xml.bind.annotation.XmlElement");
+            if (xmlElementAnnotation.isPresent()) {
+                JAnnotationValue annotationValue = xmlElementAnnotation.get().getAnnotationMembers().get("name");
+                if (annotationValue != null) {
+                    StringWriter sw = new StringWriter();
+                    JFormatter f = new JFormatter(sw);
+                    annotationValue.generate(f);
+                    getter = clazz.getMethod("get" + sw.toString().replaceAll("\"", ""), NO_ARGS);
+                }
+            }
+        }
 		return getter;
 	}
-
-
 
 	private void log(final Level level, final String key, final Object... args) {
 		final String message = "[" + MESSAGE_PREFIX + "] [" + level.getLocalizedName() + "] " + getMessage(key, args);
@@ -929,6 +970,16 @@ public final class PluginImpl extends Plugin {
     private JDefinedClass getOwner(JFieldVar jFieldVar) {
         try {
             return (JDefinedClass) FieldUtils.readField(jFieldVar, "owner",true);
+        }
+        catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+    
+    // init field is private :-( , we really need this
+    private JExpression getInitJExpression(JFieldVar jFieldVar) {
+        try {
+            return (JExpression) FieldUtils.readField(jFieldVar, "init",true);
         }
         catch (IllegalAccessException e) {
             throw new IllegalStateException(e);
