@@ -509,11 +509,11 @@ public final class PluginImpl extends Plugin {
 	}
 
    private void replaceCollectionGetters(JDefinedClass implClass, JFieldVar[] declaredFields) {
-        for (JFieldVar fieldOutline : declaredFields) {
-            if (isCollection(fieldOutline) && !leaveCollectionsMutable) {
-                JMethod getterMethod = getGetterProperty(fieldOutline,getOwner(fieldOutline));
+        for (JFieldVar field : declaredFields) {
+            if (isCollection(field) && !leaveCollectionsMutable) {
+                JMethod getterMethod = getGetterProperty(field,getOwner(field));
                 if (getterMethod != null) {
-                    replaceCollectionGetter(fieldOutline, getterMethod);
+                    replaceCollectionGetter(field, getterMethod);
                 }
             }
         }
@@ -538,28 +538,28 @@ public final class PluginImpl extends Plugin {
 		getter.javadoc().append("Returns unmodifiable collection.");
 	}
 
-	private void generatePropertyAssignment(final JMethod method, JFieldVar fieldOutline) {
-		generatePropertyAssignment(method, fieldOutline, false);
+	private void generatePropertyAssignment(final JMethod method, JFieldVar field) {
+		generatePropertyAssignment(method, field, false);
 	}
 
-	private void generatePropertyAssignment(final JMethod method, JFieldVar fieldOutline, boolean wrapUnmodifiable) {
+	private void generatePropertyAssignment(final JMethod method, JFieldVar field, boolean wrapUnmodifiable) {
 		JBlock block = method.body();
-		JCodeModel codeModel = fieldOutline.type().owner();
-		String fieldName = fieldOutline.name();
-		JVar param = generateMethodParameter(method, fieldOutline);
-		if (isCollection(fieldOutline) && !leaveCollectionsMutable && wrapUnmodifiable) {
+		JCodeModel codeModel = field.type().owner();
+		String fieldName = field.name();
+		JVar param = generateMethodParameter(method, field);
+		if (isCollection(field) && !leaveCollectionsMutable && wrapUnmodifiable) {
 				JConditional conditional = block._if(param.eq(JExpr._null()));
 				conditional._then().assign(JExpr.refthis(fieldName), JExpr._null());
 				conditional._else().assign(JExpr.refthis(fieldName),
-						getDefensiveCopyExpression(codeModel, getJavaType(fieldOutline), param));
+						getDefensiveCopyExpression(codeModel, getJavaType(field), param));
 		} else {
 			block.assign(JExpr.refthis(fieldName), JExpr.ref(fieldName));
 		}
 	}
 
-	private JVar generateMethodParameter(final JMethod method, JFieldVar fieldOutline) {
-		String fieldName = fieldOutline.name();
-		JType javaType = getJavaType(fieldOutline);
+	private JVar generateMethodParameter(final JMethod method, JFieldVar field) {
+		String fieldName = field.name();
+		JType javaType = getJavaType(field);
 		return method.param(JMod.FINAL, javaType, fieldName);
 	}
 
@@ -652,16 +652,16 @@ public final class PluginImpl extends Plugin {
 		return newClass == null ? JExpr._null() : JExpr._new(newClass);
 	}
 
-	private void generateDefaultPropertyAssignment(JMethod method, JFieldVar fieldOutline) {
+	private void generateDefaultPropertyAssignment(JMethod method, JFieldVar field) {
 		JBlock block = method.body();
-		String propertyName = fieldOutline.name();
-		block.assign(JExpr.refthis(propertyName), defaultValue(fieldOutline));
+		String propertyName = field.name();
+		block.assign(JExpr.refthis(propertyName), defaultValue(field));
 	}
 
-	private JExpression defaultValue(JFieldVar fieldOutline) {
-		JType javaType = fieldOutline.type();
+	private JExpression defaultValue(JFieldVar field) {
+		JType javaType = field.type();
 	    if(setDefaultValuesInConstructor) {
-	        Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(fieldOutline.annotations(),"javax.xml.bind.annotation.XmlElement");
+	        Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(),"javax.xml.bind.annotation.XmlElement");
 	        if (xmlElementAnnotation.isPresent()) {
 	            JAnnotationValue annotationValue = xmlElementAnnotation.get().getAnnotationMembers().get("defaultValue");
 	            if (annotationValue != null) {
@@ -673,7 +673,7 @@ public final class PluginImpl extends Plugin {
 	        }
 	    }
 		if (javaType.isPrimitive()) {
-			if (fieldOutline.type().owner().BOOLEAN.equals(javaType)) {
+			if (field.type().owner().BOOLEAN.equals(javaType)) {
 				return JExpr.lit(false);
 			} else if (javaType.owner().SHORT.equals(javaType)) {
 				return JExpr.cast(javaType.owner().SHORT, JExpr.lit(0));
@@ -692,17 +692,17 @@ public final class PluginImpl extends Plugin {
 		final JMethod ctor = createConstructor(clazz, constAccess);
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
-			for (JFieldVar fieldOutline : superclassFields) {
-	            if (mustAssign(fieldOutline)) {
-    				superInvocation.arg(JExpr.ref(fieldOutline.name()));
-    				generateMethodParameter(ctor, fieldOutline);
+			for (JFieldVar field : superclassFields) {
+	            if (mustAssign(field)) {
+    				superInvocation.arg(JExpr.ref(field.name()));
+    				generateMethodParameter(ctor, field);
 	            }
 			}
 		}
 
-		for (JFieldVar fieldOutline : declaredFields) {
-		    if (mustAssign(fieldOutline)) {
-		        generatePropertyAssignment(ctor, fieldOutline, true);
+		for (JFieldVar field : declaredFields) {
+		    if (mustAssign(field)) {
+		        generatePropertyAssignment(ctor, field, true);
 		    }
 		}
 		return ctor;
@@ -723,15 +723,15 @@ public final class PluginImpl extends Plugin {
 		ctor.javadoc().add("Used by JAX-B");
 		if (superclassFields.length > 0) {
 			JInvocation superInvocation = ctor.body().invoke("super");
-			for (JFieldVar fieldOutline : superclassFields) {
-                if (mustAssign(fieldOutline)) {
-                    superInvocation.arg(defaultValue(fieldOutline));
+			for (JFieldVar field : superclassFields) {
+                if (mustAssign(field)) {
+                    superInvocation.arg(defaultValue(field));
                 }
 			}
 		}
-		for (JFieldVar fieldOutline : declaredFields) {
-	        if (shouldAssign(fieldOutline)) {
-	            generateDefaultPropertyAssignment(ctor, fieldOutline);
+		for (JFieldVar field : declaredFields) {
+	        if (shouldAssign(field)) {
+	            generateDefaultPropertyAssignment(ctor, field);
 	        }
 		}
 		return ctor;
@@ -796,11 +796,11 @@ public final class PluginImpl extends Plugin {
 	private JType[] getFieldTypes(JFieldVar[] declaredFields, JFieldVar[] superclassFields) {
 		JType[] fieldTypes = new JType[declaredFields.length + superclassFields.length];
 		int i = 0;
-		for (JFieldVar fieldOutline : superclassFields) {
-			fieldTypes[i++] = fieldOutline.type();
+		for (JFieldVar field : superclassFields) {
+			fieldTypes[i++] = field.type();
 		}
-		for (JFieldVar fieldOutline : declaredFields) {
-			fieldTypes[i++] = fieldOutline.type();
+		for (JFieldVar field : declaredFields) {
+			fieldTypes[i++] = field.type();
 		}
 		return fieldTypes;
 	}
@@ -870,22 +870,22 @@ public final class PluginImpl extends Plugin {
 	}
 
 	private void makePropertiesFinal(JDefinedClass clazz, JFieldVar[] declaredFields) {
-		for (JFieldVar fieldOutline : declaredFields) {
-			String fieldName = fieldOutline.name();
-			clazz.fields().get(fieldName).mods().setFinal(!(leaveCollectionsMutable && isCollection(fieldOutline)));
+		for (JFieldVar field : declaredFields) {
+			String fieldName = field.name();
+			clazz.fields().get(fieldName).mods().setFinal(!(leaveCollectionsMutable && isCollection(field)));
 		}
 	}
 
-	private boolean isCollection(JFieldVar fieldOutline) {
-		if (fieldOutline.type() instanceof JClass) {
-			return isCollection((JClass)fieldOutline.type());
+	private boolean isCollection(JFieldVar field) {
+		if (field.type() instanceof JClass) {
+			return isCollection((JClass)field.type());
 		}
 		return false;
 	}
 
-	private boolean isCollection(JClass fieldOutline) {
-		return fieldOutline.owner().ref(Collection.class).isAssignableFrom(fieldOutline) ||
-				fieldOutline.owner().ref(Map.class).isAssignableFrom(fieldOutline);
+	private boolean isCollection(JClass clazz) {
+		return clazz.owner().ref(Collection.class).isAssignableFrom(clazz) ||
+				clazz.owner().ref(Map.class).isAssignableFrom(clazz);
 	}
 
 	private void removeSetters(JDefinedClass clazz) {
