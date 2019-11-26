@@ -1,18 +1,21 @@
 package com.github.sabomichal.immutablexjc.test;
 
-import static org.junit.Assert.*;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
-import org.junit.Test;
 
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Declaration;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Model;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.NameExpression;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Parameters;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Variable;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -166,5 +169,16 @@ public class TestImmutableXjc {
        assertEquals(d1.getDocumentation(), d2.getDocumentation());
        assertNotNull(d2.getBy());
        assertEquals(d1.getBy(), d2.getBy());
+    }
+
+    @Test
+    public void optionalGetter() {
+        assertFalse(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null, null, null)
+                .getDocumentation()
+                .isPresent());
+
+        assertTrue(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null, "documentation", null)
+                .getDocumentation()
+                .isPresent());
     }
 }
