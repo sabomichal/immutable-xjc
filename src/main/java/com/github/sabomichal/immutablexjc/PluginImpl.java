@@ -100,25 +100,15 @@ public final class PluginImpl extends Plugin {
             classes.sort(new Comparator<ClassOutline>() {
                 @Override
                 public int compare(ClassOutline o1, ClassOutline o2) {
-                    if (isSubClass(o1, o2)) {
-                        return 1;
-                    }
-                    if (isSubClass(o2, o1)) {
-                        return -1;
-                    }
-                    return 0;
+                    return Integer.compare(getDepth(o1), getDepth(o2));
                 }
 
-                private boolean isSubClass(ClassOutline o1, ClassOutline o2) {
-                    boolean isSubClass = false;
-                    ClassOutline superClass = o1.getSuperClass();
-                    while (superClass != null && superClass != o2) {
-                        superClass = superClass.getSuperClass();
+                private int getDepth(ClassOutline outline) {
+                    int depth = 0;
+                    while ((outline = outline.getSuperClass()) != null) {
+                        ++depth;
                     }
-                    if (superClass == o2) {
-                        isSubClass = true;
-                    }
-                    return isSubClass;
+                    return depth;
                 }
             });
         }
