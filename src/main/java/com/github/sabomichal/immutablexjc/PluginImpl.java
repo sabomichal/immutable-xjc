@@ -1,5 +1,31 @@
 package com.github.sabomichal.immutablexjc;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+
+import java.beans.Introspector;
+import java.io.StringWriter;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.stream.Stream;
+
 import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JAnnotationValue;
 import com.sun.codemodel.JBlock;
@@ -25,28 +51,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.xml.sax.ErrorHandler;
 
-import java.beans.Introspector;
-import java.io.StringWriter;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
-
 /**
  * IMMUTABLE-XJC plugin implementation.
  *
@@ -63,6 +67,7 @@ public final class PluginImpl extends Plugin {
     private static final String PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME = "-imm-pubconstructormaxargs";
     private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
     private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-imm-constructordefaults";
+    private static final String OPTIONAL_GETTER_OPTION_NAME = "-imm-optionalgetter";
 
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
@@ -80,6 +85,7 @@ public final class PluginImpl extends Plugin {
     private boolean leaveCollectionsMutable;
     private boolean setDefaultValuesInConstructor;
     private boolean useSimpleBuilderName;
+    private boolean optionalGetter;
     private Options options;
 
     @Override
@@ -94,25 +100,15 @@ public final class PluginImpl extends Plugin {
             classes.sort(new Comparator<ClassOutline>() {
                 @Override
                 public int compare(ClassOutline o1, ClassOutline o2) {
-                    if (isSubClass(o1, o2)) {
-                        return 1;
-                    }
-                    if (isSubClass(o2, o1)) {
-                        return -1;
-                    }
-                    return 0;
+                    return Integer.compare(getDepth(o1), getDepth(o2));
                 }
 
-                private boolean isSubClass(ClassOutline o1, ClassOutline o2) {
-                    boolean isSubClass = false;
-                    ClassOutline superClass = o1.getSuperClass();
-                    while (superClass != null && superClass != o2) {
-                        superClass = superClass.getSuperClass();
+                private int getDepth(ClassOutline outline) {
+                    int depth = 0;
+                    while ((outline = outline.getSuperClass()) != null) {
+                        ++depth;
                     }
-                    if (superClass == o2) {
-                        isSubClass = true;
-                    }
-                    return isSubClass;
+                    return depth;
                 }
             });
         }
@@ -149,6 +145,10 @@ public final class PluginImpl extends Plugin {
             makeClassFinal(implClass);
             removeSetters(implClass);
             replaceCollectionGetters(implClass, declaredFields);
+
+            if (optionalGetter) {
+                replaceOptionalGetters(implClass, declaredFields);
+            }
 
             if (createBuilder) {
                 if (!clazz.implClass.isAbstract()) {
@@ -199,6 +199,7 @@ public final class PluginImpl extends Plugin {
         appendOption(retval, SKIPCOLLECTIONS_OPTION_NAME, getMessage("leaveCollectionsMutable"), n, maxOptionLength);
         appendOption(retval, PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME, getMessage("publicConstructorMaxArgs"), n, maxOptionLength);
         appendOption(retval, CONSTRUCTORDEFAULTS_OPTION_NAME, getMessage("setDefaultValuesInConstructor"), n, maxOptionLength);
+        appendOption(retval, OPTIONAL_GETTER_OPTION_NAME, getMessage("optionalGetterUsage"), n, maxOptionLength);
         return retval.toString();
     }
 
@@ -250,6 +251,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(CONSTRUCTORDEFAULTS_OPTION_NAME)) {
             this.setDefaultValuesInConstructor = true;
+            return 1;
+        }
+        if (args[i].startsWith(OPTIONAL_GETTER_OPTION_NAME)) {
+            this.optionalGetter = true;
             return 1;
         }
         return 0;
@@ -501,6 +506,40 @@ public final class PluginImpl extends Plugin {
         return null;
     }
 
+    private void replaceOptionalGetters(JDefinedClass implClass, JFieldVar[] declaredFields) {
+        for (JFieldVar field : declaredFields) {
+            if (isCollection(field)) {
+                continue;
+            }
+
+            if (!isRequired(field)) {
+                JMethod getterMethod = getGetterProperty(field, implClass);
+                if (getterMethod != null) {
+                    replaceOptionalGetter(implClass, field, getterMethod);
+                }
+            }
+        }
+    }
+
+    private void replaceOptionalGetter(JDefinedClass ownerClass, JFieldVar field, final JMethod getter) {
+        // remove the old getter
+        ownerClass.methods().remove(getter);
+
+        JCodeModel codeModel = field.type().owner();
+
+        final JClass optionalWrappedReturnType = codeModel.ref(Optional.class).narrow(field.type());
+
+        // and create a new one
+        JMethod newGetter = ownerClass.method(getter.mods().getValue(), optionalWrappedReturnType, getter.name());
+        JBlock block = newGetter.body();
+
+        JVar param = generateMethodParameter(getter, field);
+
+        block._return(getOptionalWrappedExpression(codeModel, param));
+
+        getter.javadoc().append("Returns optional attribute/element.");
+    }
+
     private void replaceCollectionGetters(JDefinedClass implClass, JFieldVar[] declaredFields) {
         for (JFieldVar field : declaredFields) {
             if (isCollection(field) && !leaveCollectionsMutable) {
@@ -642,6 +681,10 @@ public final class PluginImpl extends Plugin {
         }
 
         return newClass == null ? JExpr._null() : JExpr._new(newClass);
+    }
+
+    private JExpression getOptionalWrappedExpression(JCodeModel codeModel, JVar param) {
+        return codeModel.ref(Optional.class).staticInvoke("ofNullable").arg(param);
     }
 
     private void generateDefaultPropertyAssignment(JMethod method, JFieldVar field) {
@@ -856,6 +899,21 @@ public final class PluginImpl extends Plugin {
     private boolean isCollection(JClass clazz) {
         return clazz.owner().ref(Collection.class).isAssignableFrom(clazz) ||
                 clazz.owner().ref(Map.class).isAssignableFrom(clazz);
+    }
+
+    private boolean isRequired(JFieldVar field) {
+        return Stream.of(XmlElement.class, XmlAttribute.class)
+                .map(annotationType ->
+                        getAnnotation(field.annotations(), annotationType.getCanonicalName())
+                                .map(JAnnotationUse::getAnnotationMembers)
+                                .map(annotationValues -> annotationValues.get("required"))
+                                .filter(annotationValue -> {
+                                    StringWriter sw = new StringWriter();
+                                    JFormatter f = new JFormatter(sw);
+                                    annotationValue.generate(f);
+                                    return sw.toString().equals("true");
+                                })
+                ).anyMatch(Optional::isPresent);
     }
 
     private void removeSetters(JDefinedClass clazz) {

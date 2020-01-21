@@ -281,6 +281,25 @@
                                     </args>
                                 </configuration>
                             </execution>
+							<execution>
+								<id>test-model-optionalgetter</id>
+								<phase>generate-test-sources</phase>
+								<goals>
+									<goal>generate</goal>
+								</goals>
+								<configuration>
+									<specVersion>2.3.1</specVersion>
+									<schemaDirectory>src/test/xsd</schemaDirectory>
+									<generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
+									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+									<forceRegenerate>true</forceRegenerate>
+									<args>
+										<arg>-immutable</arg>
+										<arg>-imm-optionalgetter</arg>
+									</args>
+								</configuration>
+							</execution>
                         </executions>
                     </plugin>
                     <plugin>
