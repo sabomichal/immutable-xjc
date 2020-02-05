@@ -83,7 +83,7 @@ The '-imm-skipcollections' option is used to leave collections mutable
 #### -imm-constructordefaults
 The '-imm-constructordefaults' option is used to set default values for xs:element's and xs:attribute's in no-argument constructor. Default values must be strings or numbers, otherwise ignored.
 
-### -imm-optionalgetter
+#### -imm-optionalgetter
 The '-imm-optionalgetter' option is used to wrap the return value of getters for non-required (`@XmlAttribute|Element(required = false)`) values with `java.util.Optional<OriginalRetunType>`.
 
 ### Usage
