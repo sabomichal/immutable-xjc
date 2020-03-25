@@ -91,16 +91,16 @@ The '-imm-optionalgetter' option is used to wrap the return value of getters for
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.XJCFacade'. The following example demonstrates a working command line for use with JDK 11+ (assuming the needed dependencies are found in the current working directory).
 ```sh
 java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true\ 
-         -classpath codemodel-2.3.1.jar:\
-                    jaxb-api-2.3.1.jar:\
-                    jaxb-runtime-2.3.1.jar:\
-                    jaxb-xjc-2.3.1.jar:\
+         -classpath codemodel-2.3.2.jar:\
+                    jaxb-api-2.3.2.jar:\
+                    jaxb-runtime-2.3.2.jar:\
+                    jaxb-xjc-2.3.2.jar:\
                     javax.activation-api-1.2.0.jar:\
                     javax.activation-1.2.0.jar:\
-                    rngom-2.3.1.jar:\
+                    rngom-2.3.2.jar:\
                     istack-commons-tools-3.0.7.jar:\
                     istack-commons-runtime-3.0.7.jar:\
-                    relaxng-datatype-2.3.1.jar:\
+                    relaxng-datatype-2.3.2.jar:\
                     txw2-2.3.1.jar:\
                     xsom-2.3.1.jar com.sun.tools.xjc.XJCFacade -immutable <schema files>
 ```
@@ -115,7 +115,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
          <dependency>
              <groupId>com.github.sabomichal</groupId>
              <artifactId>immutable-xjc-plugin</artifactId>
-             <version>1.6</version>
+             <version>1.6.2</version>
          </dependency>
      </dependencies>
      <executions>
@@ -145,7 +145,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6</version>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
     <executions>
@@ -156,7 +156,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
             </goals>
             <configuration>
                 <wsdlFiles>
-                    <wsdlFile>test.wsdl</wsdlFile>
+                    <wsdlFile>example.wsdl</wsdlFile>
                 </wsdlFiles>
                 <args>
                     <arg>-B-immutable -B-imm-builder</arg>
@@ -175,7 +175,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6</version>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
     <executions>
@@ -187,7 +187,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
             <configuration>
                 <wsdlOptions>
                     <wsdlOption>
-                        <wsdl>${basedir}/wsdl/test.wsdl</wsdl>
+                        <wsdl>${basedir}/wsdl/example.wsdl</wsdl>
                         <extraargs>
                             <extraarg>-xjc-immutable</extraarg>
                             <extraarg>-xjc-imm-builder</extraarg>
@@ -207,7 +207,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6</version>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
     <executions>
@@ -219,7 +219,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
             <configuration>
                 <xsdOptions>
                     <xsdOption>
-                        <xsd>${basedir}/wsdl/test.xsd</xsd>
+                        <xsd>${basedir}/wsdl/example.xsd</xsd>
                         <extensionArgs>
                             <arg>-immutable</arg>
                             <arg>-imm-builder</arg>
@@ -235,7 +235,22 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
 #### Gradle
 Working example with JAXB plugin and JDK11+ is currently missing. Pull requests wanted!
 ```groovy
+plugins {
+    id "no.nils.wsdl2java" version "0.12"
+}
 
+dependencies {
+    wsdl2java 'com.github.sabomichal:immutable-xjc-plugin:1.6.2'
+}
+
+wsdl2java {
+    wsdlsToGenerate = [
+            ['-xjc-immutable', '-xjc-imm-builder', 'src/main/resources/wsdl/example.wsdl']
+        ]
+    wsdlDir = file("$projectDir/src/main/resources/wsdl")
+    cxfVersion = "3.3.5"
+    cxfPluginVersion = "3.3.1"
+}
 ```
 
 

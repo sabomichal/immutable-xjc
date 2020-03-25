@@ -1,45 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="http://a.b.c.com/d" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://a.b.c.com/d">
-
-	<xs:element name="model">
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element name="parameters" type="Parameters"/>
-			</xs:sequence>
-		</xs:complexType>
-		<xs:unique name="name">
-			<xs:selector xpath="*/*"/>
-			<xs:field xpath="@name"/>
-		</xs:unique>
-	</xs:element>
-
-	<xs:complexType name="Parameters">
-		<xs:choice minOccurs="0" maxOccurs="unbounded">
-			<xs:element name="parameter" type="Declaration"/>
-		</xs:choice>
-	</xs:complexType>
-
-
-	<xs:complexType name="Declaration">
-		<xs:complexContent>
-			<xs:extension base="Variable">
-				<xs:sequence>
-					<xs:element name="documentation" type="xs:string" minOccurs="0" default="test"/>
-				</xs:sequence>
-				<xs:attribute name="type" type="xs:string" use="required"/>
-			</xs:extension>
-		</xs:complexContent>
-	</xs:complexType>
-
-	<xs:complexType name="Variable">
-		<xs:sequence>
-			<xs:element name="by" type="NameExpression" maxOccurs="unbounded" minOccurs="0"/>
-		</xs:sequence>
-		<xs:attribute name="name" type="xs:string" use="required"/>
-	</xs:complexType>
-
-	<xs:complexType name="NameExpression">
-		<xs:attribute name="name" type="xs:string"/>
-	</xs:complexType>
-
+<xs:schema targetNamespace="http://a.b.c.com/d" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://a.b.c.com/d">
+    <xs:element name="model">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="parameters" type="Parameters"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="name">
+            <xs:selector xpath="*/*"/>
+            <xs:field xpath="@name"/>
+        </xs:unique>
+    </xs:element>
+    <xs:complexType name="Parameters">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="parameter" type="Declaration"/>
+        </xs:choice>
+    </xs:complexType>
+    <xs:complexType name="Declaration">
+        <xs:complexContent>
+            <xs:extension base="Variable">
+                <xs:sequence>
+                    <xs:element name="documentation" type="xs:string" minOccurs="0" default="test"/>
+                </xs:sequence>
+                <xs:attribute name="type" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="Variable">
+        <xs:sequence>
+            <xs:element name="by" type="NameExpression" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="NameExpression">
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
 </xs:schema>
