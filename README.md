@@ -233,7 +233,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
 ```
 
 #### Gradle
-Working example with JAXB plugin and JDK11+ is currently missing. Pull requests wanted!
+The following example demonstrates the use of the IMMUTABLE-XJC plugin with the Gradle plugin [wsdl2java](https://github.com/nilsmagnus/wsdl2java).
 ```groovy
 plugins {
     id "no.nils.wsdl2java" version "0.12"
