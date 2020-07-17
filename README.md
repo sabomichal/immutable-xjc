@@ -45,7 +45,7 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 * xsd polymorphism compilation problems fixed
 
 ### JAXB version
-Plugin is built against JAXB 2.3.1
+Plugin is built against JAXB 2.3.3
 
 ### Java version
 Target Java versions is 1.8, JAXB dependencies are set to be able to built with JDK 11+. 
