@@ -1,8 +1,5 @@
 package com.github.sabomichal.immutablexjc;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-
 import java.beans.Introspector;
 import java.io.StringWriter;
 import java.text.MessageFormat;
@@ -47,6 +44,8 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.xml.sax.ErrorHandler;
@@ -696,7 +695,7 @@ public final class PluginImpl extends Plugin {
     private JExpression defaultValue(JFieldVar field) {
         JType javaType = field.type();
         if (setDefaultValuesInConstructor) {
-            Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(), javax.xml.bind.annotation.XmlElement.class.getCanonicalName());
+            Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(), XmlElement.class.getCanonicalName());
             if (xmlElementAnnotation.isPresent()) {
                 JAnnotationValue annotationValue = xmlElementAnnotation.get().getAnnotationMembers().get("defaultValue");
                 if (annotationValue != null) {
@@ -858,7 +857,7 @@ public final class PluginImpl extends Plugin {
         }
         if (getter == null) {
             //XJC does not work conform Introspector.decapitalize when multiple upper-case letter are in field name
-            Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(), javax.xml.bind.annotation.XmlElement.class.getCanonicalName());
+            Optional<JAnnotationUse> xmlElementAnnotation = getAnnotation(field.annotations(), XmlElement.class.getCanonicalName());
             if (xmlElementAnnotation.isPresent()) {
                 JAnnotationValue annotationValue = xmlElementAnnotation.get().getAnnotationMembers().get("name");
                 if (annotationValue != null) {

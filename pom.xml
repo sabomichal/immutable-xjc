@@ -1,191 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.sabomichal</groupId>
-	<artifactId>immutable-xjc-plugin</artifactId>
-	<version>0-SNAPSHOT</version>
-	<packaging>jar</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.github.sabomichal</groupId>
+    <artifactId>immutable-xjc-plugin</artifactId>
+    <version>0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.test.skip>true</maven.test.skip>
-		<jaxb.version>2.3.3</jaxb.version>
-		<activation.version>1.2.0</activation.version>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.test.skip>true</maven.test.skip>
+        <jaxb.version>3.0.2</jaxb.version>
+        <activation.version>1.2.0</activation.version>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>codemodel</artifactId>
-			<version>${jaxb.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>${jaxb.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-xjc</artifactId>
-			<version>${jaxb.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-runtime</artifactId>
-			<version>${jaxb.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.activation</groupId>
-			<artifactId>javax.activation</artifactId>
-			<version>${activation.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>codemodel</artifactId>
+            <version>${jaxb.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-xjc</artifactId>
+            <version>${jaxb.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
+            <version>${activation.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
-					<configuration>
-						<release>8</release>
-						<debug>true</debug>
-						<optimize>true</optimize>
-						<showDeprecation>true</showDeprecation>
-						<showWarnings>true</showWarnings>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>3.2.0</version>
-					<configuration>
-						<delimiters>
-							<delimiter>${*}</delimiter>
-						</delimiters>
-						<useDefaultDelimiters>false</useDefaultDelimiters>
-						<escapeWindowsPaths>true</escapeWindowsPaths>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.2.0</version>
-					<configuration>
-						<archive>
-							<index>true</index>
-							<addMavenDescriptor>false</addMavenDescriptor>
-							<compress>true</compress>
-							<manifestEntries>
-								<Build-Date>${buildNumber}</Build-Date>
-								<Maven-Version>${maven.version}</Maven-Version>
-							</manifestEntries>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-source-plugin</artifactId>
-					<version>3.2.1</version>
-					<configuration>
-						<archive>
-							<index>true</index>
-							<addMavenDescriptor>false</addMavenDescriptor>
-							<compress>true</compress>
-							<manifestEntries>
-								<Build-Date>${buildNumber}</Build-Date>
-								<Maven-Version>${maven.version}</Maven-Version>
-							</manifestEntries>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>3.2.0</version>
-					<executions>
-						<execution>
-							<id>default-maven-version</id>
-							<phase>initialize</phase>
-							<goals>
-								<goal>maven-version</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>default-timestamp-property</id>
-							<phase>initialize</phase>
-							<goals>
-								<goal>timestamp-property</goal>
-							</goals>
-							<configuration>
-								<name>buildNumber</name>
-								<locale>en</locale>
-								<pattern>yyyy-MM-dd'T'HH:mm:ssZ</pattern>
-							</configuration>
-						</execution>
-						<execution>
-							<id>default-attach-artifact</id>
-							<inherited>false</inherited>
-							<phase>prepare-package</phase>
-							<goals>
-								<goal>attach-artifact</goal>
-							</goals>
-							<configuration>
-								<artifacts>
-									<artifact>
-										<file>${basedir}/LICENSE.txt</file>
-										<classifier>license</classifier>
-										<type>txt</type>
-									</artifact>
-								</artifacts>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-release-plugin</artifactId>
-					<version>2.5.3</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <release>8</release>
+                        <debug>true</debug>
+                        <optimize>true</optimize>
+                        <showDeprecation>true</showDeprecation>
+                        <showWarnings>true</showWarnings>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <delimiters>
+                            <delimiter>${*}</delimiter>
+                        </delimiters>
+                        <useDefaultDelimiters>false</useDefaultDelimiters>
+                        <escapeWindowsPaths>true</escapeWindowsPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <archive>
+                            <index>true</index>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                            <compress>true</compress>
+                            <manifestEntries>
+                                <Build-Date>${buildNumber}</Build-Date>
+                                <Maven-Version>${maven.version}</Maven-Version>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                    <configuration>
+                        <archive>
+                            <index>true</index>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                            <compress>true</compress>
+                            <manifestEntries>
+                                <Build-Date>${buildNumber}</Build-Date>
+                                <Maven-Version>${maven.version}</Maven-Version>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <execution>
+                            <id>default-maven-version</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>maven-version</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>default-timestamp-property</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>timestamp-property</goal>
+                            </goals>
+                            <configuration>
+                                <name>buildNumber</name>
+                                <locale>en</locale>
+                                <pattern>yyyy-MM-dd'T'HH:mm:ssZ</pattern>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>default-attach-artifact</id>
+                            <inherited>false</inherited>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>attach-artifact</goal>
+                            </goals>
+                            <configuration>
+                                <artifacts>
+                                    <artifact>
+                                        <file>${basedir}/LICENSE.txt</file>
+                                        <classifier>license</classifier>
+                                        <type>txt</type>
+                                    </artifact>
+                                </artifacts>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>
@@ -226,9 +227,9 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.jvnet.jaxb2.maven2</groupId>
-                        <artifactId>maven-jaxb2-plugin</artifactId>
-                        <version>0.14.0</version>
+                        <groupId>com.evolvedbinary.maven.jvnet</groupId>
+                        <artifactId>jaxb30-maven-plugin</artifactId>
+                        <version>0.15.0</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
@@ -245,7 +246,7 @@
 									<goal>generate</goal>
 								</goals>
 								<configuration>
-									<specVersion>2.3.2</specVersion>
+									<specVersion>3.0.1</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
 									<generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -263,7 +264,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>2.3.2</specVersion>
+                                    <specVersion>3.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.noinheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -282,7 +283,7 @@
 									<goal>generate</goal>
 								</goals>
 								<configuration>
-									<specVersion>2.3.3</specVersion>
+									<specVersion>3.0.1</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
 									<generatePackage>${project.groupId}.immutablexjc.test.inheritbuilder</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -303,7 +304,7 @@
 									<goal>generate</goal>
 								</goals>
 								<configuration>
-									<specVersion>2.3.3</specVersion>
+									<specVersion>3.0.1</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
 									<generatePackage>${project.groupId}.immutablexjc.test.misc</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -328,7 +329,7 @@
 									<goal>generate</goal>
 								</goals>
 								<configuration>
-									<specVersion>2.3.3</specVersion>
+									<specVersion>3.0.1</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
 									<generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -389,49 +390,49 @@
         </profile>
     </profiles>
 
-	<name>IMMUTABLE-XJC</name>
-	<description>JAXB 2.0 Schema to Java compiler plugin for making schema derived classes immutable.</description>
-	<url>https://github.com/sabomichal/immutable-xjc</url>
-	<inceptionYear>2012</inceptionYear>
+    <name>IMMUTABLE-XJC</name>
+    <description>JAXB 2.0 Schema to Java compiler plugin for making schema derived classes immutable.</description>
+    <url>https://github.com/sabomichal/immutable-xjc</url>
+    <inceptionYear>2012</inceptionYear>
 
-	<issueManagement>
-		<system>GitHub</system>
-		<url>https://github.com/sabomichal/immutable-xjc/issues</url>
-	</issueManagement>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/sabomichal/immutable-xjc/issues</url>
+    </issueManagement>
 
-	<licenses>
-		<license>
-			<name>The MIT License (MIT)</name>
-			<url>http://opensource.org/licenses/MIT</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-	<developers>
-		<developer>
-			<id>sabo</id>
-			<name>Michal Sabo</name>
-			<email>sabo.michal@gmail.com</email>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <id>sabo</id>
+            <name>Michal Sabo</name>
+            <email>sabo.michal@gmail.com</email>
+        </developer>
+    </developers>
 
-	<scm>
-		<connection>scm:git:https://github.com/sabomichal/immutable-xjc.git</connection>
-		<developerConnection>scm:git:git@github.com:sabomichal/immutable-xjc.git</developerConnection>
-		<url>https://github.com/sabomichal/immutable-xjc</url>
-	  <tag>HEAD</tag>
-  </scm>
+    <scm>
+        <connection>scm:git:https://github.com/sabomichal/immutable-xjc.git</connection>
+        <developerConnection>scm:git:git@github.com:sabomichal/immutable-xjc.git</developerConnection>
+        <url>https://github.com/sabomichal/immutable-xjc</url>
+        <tag>HEAD</tag>
+    </scm>
 
-	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<name>Sonatype Nexus snapshot repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Sonatype Nexus release repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus snapshot repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Sonatype Nexus release repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
