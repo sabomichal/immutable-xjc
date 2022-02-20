@@ -885,6 +885,7 @@ public final class PluginImpl extends Plugin {
         for (JFieldVar field : declaredFields) {
             String fieldName = field.name();
             clazz.fields().get(fieldName).mods().setFinal(!(leaveCollectionsMutable && isCollection(field)));
+            clazz.fields().get(fieldName).init(null); // remove field assignment
         }
     }
 
