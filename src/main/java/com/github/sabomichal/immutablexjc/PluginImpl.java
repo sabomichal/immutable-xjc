@@ -897,7 +897,18 @@ public final class PluginImpl extends Plugin {
 
     private boolean isCollection(JClass clazz) {
         return clazz.owner().ref(Collection.class).isAssignableFrom(clazz) ||
-                clazz.owner().ref(Map.class).isAssignableFrom(clazz);
+                isMap(clazz);
+    }
+
+    private boolean isMap(JFieldVar field) {
+        if (field.type() instanceof JClass) {
+            return isMap((JClass) field.type());
+        }
+        return false;
+    }
+
+    private boolean isMap(JClass clazz) {
+        return clazz.equals(clazz.owner().ref(Map.class).narrow(clazz.getTypeParameters()));
     }
 
     private boolean isRequired(JFieldVar field) {
