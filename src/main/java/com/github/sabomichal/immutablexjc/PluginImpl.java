@@ -21,6 +21,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.sun.codemodel.JAnnotationUse;
@@ -434,21 +436,39 @@ public final class PluginImpl extends Plugin {
 
     private JMethod addAddMethod(JDefinedClass builderClass, JFieldVar field, boolean inherit) {
         List<JClass> typeParams = ((JClass) getJavaType(field)).getTypeParameters();
-        if (!typeParams.iterator().hasNext()) {
+        if (typeParams.isEmpty()) {
             return null;
         }
         JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "add" + StringUtils.capitalize(field.name()));
         JBlock block = method.body();
         String fieldName = field.name();
-        JVar param = method.param(JMod.FINAL, typeParams.iterator().next(), fieldName);
+
+        List<JVar> params = createAddParameters(method, typeParams, fieldName);
+
         if (inherit) {
             generateSuperCall(method);
         } else {
-            JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
+            String methodName = isMap(field) ? "put" : "add";
+            JInvocation invocation = JExpr.refthis(fieldName).invoke(methodName);
+            params.forEach(invocation::arg);
             block.add(invocation);
         }
         block._return(JExpr._this());
         return method;
+    }
+
+    private List<JVar> createAddParameters(JMethod method, List<JClass> typeParams, String fieldName) {
+        return IntStream.range(0, typeParams.size())
+                .mapToObj(i -> createAddParameter(method, typeParams, fieldName, i))
+                .collect(Collectors.toList());
+    }
+
+    private JVar createAddParameter(JMethod method, List<JClass> typeParams, String fieldName, int index) {
+        String name = fieldName;
+        if (typeParams.size() > 1) {
+            name += index;
+        }
+        return method.param(JMod.FINAL, typeParams.get(index), name);
     }
 
     private void generateSuperCall(JMethod method) {
