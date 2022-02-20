@@ -595,10 +595,6 @@ public final class PluginImpl extends Plugin {
 
     private JExpression getDefensiveCopyExpression(JCodeModel codeModel, JType jType, JVar param) {
         List<JClass> typeParams = ((JClass) jType).getTypeParameters();
-        JClass typeParameter = null;
-        if (typeParams.iterator().hasNext()) {
-            typeParameter = typeParams.iterator().next();
-        }
 
         JClass newClass = null;
         if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
@@ -614,8 +610,8 @@ public final class PluginImpl extends Plugin {
         } else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
-        if (newClass != null && typeParameter != null) {
-            newClass = newClass.narrow(typeParameter);
+        if (newClass != null && !typeParams.isEmpty()) {
+            newClass = newClass.narrow(typeParams);
         }
         return newClass == null ? JExpr._null() : JExpr._new(newClass).arg(param);
     }
@@ -656,10 +652,6 @@ public final class PluginImpl extends Plugin {
 
     private JExpression getNewCollectionExpression(JCodeModel codeModel, JType jType) {
         List<JClass> typeParams = ((JClass) jType).getTypeParameters();
-        JClass typeParameter = null;
-        if (typeParams.iterator().hasNext()) {
-            typeParameter = typeParams.iterator().next();
-        }
 
         JClass newClass = null;
         if (jType.erasure().equals(codeModel.ref(Collection.class))) {
@@ -675,8 +667,8 @@ public final class PluginImpl extends Plugin {
         } else if (jType.erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
-        if (newClass != null && typeParameter != null) {
-            newClass = newClass.narrow(typeParameter);
+        if (newClass != null && !typeParams.isEmpty()) {
+            newClass = newClass.narrow(typeParams);
         }
 
         return newClass == null ? JExpr._null() : JExpr._new(newClass);
