@@ -21,6 +21,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.sun.codemodel.JAnnotationUse;
@@ -434,21 +436,39 @@ public final class PluginImpl extends Plugin {
 
     private JMethod addAddMethod(JDefinedClass builderClass, JFieldVar field, boolean inherit) {
         List<JClass> typeParams = ((JClass) getJavaType(field)).getTypeParameters();
-        if (!typeParams.iterator().hasNext()) {
+        if (typeParams.isEmpty()) {
             return null;
         }
         JMethod method = builderClass.method(JMod.PUBLIC, builderClass, "add" + StringUtils.capitalize(field.name()));
         JBlock block = method.body();
         String fieldName = field.name();
-        JVar param = method.param(JMod.FINAL, typeParams.iterator().next(), fieldName);
+
+        List<JVar> params = createAddParameters(method, typeParams, fieldName);
+
         if (inherit) {
             generateSuperCall(method);
         } else {
-            JInvocation invocation = JExpr.refthis(fieldName).invoke("add").arg(param);
+            String methodName = isMap(field) ? "put" : "add";
+            JInvocation invocation = JExpr.refthis(fieldName).invoke(methodName);
+            params.forEach(invocation::arg);
             block.add(invocation);
         }
         block._return(JExpr._this());
         return method;
+    }
+
+    private List<JVar> createAddParameters(JMethod method, List<JClass> typeParams, String fieldName) {
+        return IntStream.range(0, typeParams.size())
+                .mapToObj(i -> createAddParameter(method, typeParams, fieldName, i))
+                .collect(Collectors.toList());
+    }
+
+    private JVar createAddParameter(JMethod method, List<JClass> typeParams, String fieldName, int index) {
+        String name = fieldName;
+        if (typeParams.size() > 1) {
+            name += index;
+        }
+        return method.param(JMod.FINAL, typeParams.get(index), name);
     }
 
     private void generateSuperCall(JMethod method) {
@@ -595,10 +615,6 @@ public final class PluginImpl extends Plugin {
 
     private JExpression getDefensiveCopyExpression(JCodeModel codeModel, JType jType, JVar param) {
         List<JClass> typeParams = ((JClass) jType).getTypeParameters();
-        JClass typeParameter = null;
-        if (typeParams.iterator().hasNext()) {
-            typeParameter = typeParams.iterator().next();
-        }
 
         JClass newClass = null;
         if (param.type().erasure().equals(codeModel.ref(Collection.class))) {
@@ -614,8 +630,8 @@ public final class PluginImpl extends Plugin {
         } else if (param.type().erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
-        if (newClass != null && typeParameter != null) {
-            newClass = newClass.narrow(typeParameter);
+        if (newClass != null && !typeParams.isEmpty()) {
+            newClass = newClass.narrow(typeParams);
         }
         return newClass == null ? JExpr._null() : JExpr._new(newClass).arg(param);
     }
@@ -656,10 +672,6 @@ public final class PluginImpl extends Plugin {
 
     private JExpression getNewCollectionExpression(JCodeModel codeModel, JType jType) {
         List<JClass> typeParams = ((JClass) jType).getTypeParameters();
-        JClass typeParameter = null;
-        if (typeParams.iterator().hasNext()) {
-            typeParameter = typeParams.iterator().next();
-        }
 
         JClass newClass = null;
         if (jType.erasure().equals(codeModel.ref(Collection.class))) {
@@ -675,8 +687,8 @@ public final class PluginImpl extends Plugin {
         } else if (jType.erasure().equals(codeModel.ref(SortedSet.class))) {
             newClass = codeModel.ref(TreeSet.class);
         }
-        if (newClass != null && typeParameter != null) {
-            newClass = newClass.narrow(typeParameter);
+        if (newClass != null && !typeParams.isEmpty()) {
+            newClass = newClass.narrow(typeParams);
         }
 
         return newClass == null ? JExpr._null() : JExpr._new(newClass);
@@ -885,6 +897,7 @@ public final class PluginImpl extends Plugin {
         for (JFieldVar field : declaredFields) {
             String fieldName = field.name();
             clazz.fields().get(fieldName).mods().setFinal(!(leaveCollectionsMutable && isCollection(field)));
+            clazz.fields().get(fieldName).init(null); // remove field assignment
         }
     }
 
@@ -897,7 +910,18 @@ public final class PluginImpl extends Plugin {
 
     private boolean isCollection(JClass clazz) {
         return clazz.owner().ref(Collection.class).isAssignableFrom(clazz) ||
-                clazz.owner().ref(Map.class).isAssignableFrom(clazz);
+                isMap(clazz);
+    }
+
+    private boolean isMap(JFieldVar field) {
+        if (field.type() instanceof JClass) {
+            return isMap((JClass) field.type());
+        }
+        return false;
+    }
+
+    private boolean isMap(JClass clazz) {
+        return clazz.equals(clazz.owner().ref(Map.class).narrow(clazz.getTypeParameters()));
     }
 
     private boolean isRequired(JFieldVar field) {
