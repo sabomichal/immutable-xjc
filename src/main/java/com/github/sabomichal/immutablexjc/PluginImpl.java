@@ -69,6 +69,7 @@ public final class PluginImpl extends Plugin {
     private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
     private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-imm-constructordefaults";
     private static final String OPTIONAL_GETTER_OPTION_NAME = "-imm-optionalgetter";
+    private static final String NOFINALCLASSES_OPTION_NAME = "-imm-nofinalclasses";
 
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
@@ -76,7 +77,7 @@ public final class PluginImpl extends Plugin {
     private static final String OPTION_NAME = "immutable";
     private static final JType[] NO_ARGS = new JType[0];
 
-    private ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
+    private final ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
     private boolean createBuilder;
     private boolean builderInheritance;
     private boolean createCConstructor;
@@ -87,6 +88,7 @@ public final class PluginImpl extends Plugin {
     private boolean setDefaultValuesInConstructor;
     private boolean useSimpleBuilderName;
     private boolean optionalGetter;
+    private boolean noFinalClasses;
     private Options options;
 
     @Override
@@ -201,6 +203,7 @@ public final class PluginImpl extends Plugin {
         appendOption(retval, PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME, getMessage("publicConstructorMaxArgs"), n, maxOptionLength);
         appendOption(retval, CONSTRUCTORDEFAULTS_OPTION_NAME, getMessage("setDefaultValuesInConstructor"), n, maxOptionLength);
         appendOption(retval, OPTIONAL_GETTER_OPTION_NAME, getMessage("optionalGetterUsage"), n, maxOptionLength);
+        appendOption(retval, NOFINALCLASSES_OPTION_NAME, getMessage("noFinalClassesUsage"), n, maxOptionLength);
         return retval.toString();
     }
 
@@ -256,6 +259,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(OPTIONAL_GETTER_OPTION_NAME)) {
             this.optionalGetter = true;
+            return 1;
+        }
+        if (args[i].startsWith(NOFINALCLASSES_OPTION_NAME)) {
+            this.noFinalClasses = true;
             return 1;
         }
         return 0;
@@ -755,12 +762,12 @@ public final class PluginImpl extends Plugin {
     }
 
     private boolean mustAssign(JFieldVar field) {
-        // we have to assign final field, except filled collection fields, since we might loose the collection type upon marshal
+        // we have to assign final field, except filled collection fields, since we might lose the collection type upon marshal
         return !isFinal(field) || !isCollection(field) || getInitJExpression(field) == null;
     }
 
     private boolean shouldAssign(JFieldVar field) {
-        // we don't want to clear filled collection fields in default constructor, since we might loose the collection type upon marshal
+        // we don't want to clear filled collection fields in default constructor, since we might lose the collection type upon marshal
         return !isCollection(field) || getInitJExpression(field) == null;
     }
 
@@ -884,7 +891,7 @@ public final class PluginImpl extends Plugin {
     }
 
     private void makeClassFinal(JDefinedClass clazz) {
-        clazz.mods().setFinal(true);
+        clazz.mods().setFinal(!noFinalClasses);
     }
 
     private void makePropertiesPrivate(JDefinedClass clazz) {
@@ -1051,8 +1058,8 @@ public final class PluginImpl extends Plugin {
 
     private static class ClassField {
 
-        private JDefinedClass clazz;
-        private JFieldVar field;
+        private final JDefinedClass clazz;
+        private final JFieldVar field;
 
         public ClassField(JDefinedClass clazz, JFieldVar field) {
             this.clazz = clazz;

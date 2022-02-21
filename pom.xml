@@ -276,6 +276,25 @@
                                     </args>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>test-model-nofinalclasses</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <specVersion>3.0.1</specVersion>
+                                    <schemaDirectory>src/test/xsd</schemaDirectory>
+                                    <generatePackage>${project.groupId}.immutablexjc.test.nofinalclasses</generatePackage>
+                                    <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+                                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                                    <forceRegenerate>true</forceRegenerate>
+                                    <args>
+                                        <arg>-immutable</arg>
+                                        <arg>-imm-nofinalclasses</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
 							<execution>
 								<id>test-model-inherit</id>
 								<phase>generate-test-sources</phase>
