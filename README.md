@@ -3,7 +3,7 @@
 IMMUTABLE-XJC is a JAXB 2.x XJC plugin for making schema derived classes immutable:
 
 * removes all setter methods
-* marks class final
+* marks class final (can be disabled with the '-imm-nofinalclasses' option)
 * creates a public constructor with all fields as parameters
 * creates a protected no-arg constructor
 * marks all fields within a class as final
@@ -75,6 +75,9 @@ The '-imm-constructordefaults' option is used to set default values for xs:eleme
 
 #### -imm-optionalgetter
 The '-imm-optionalgetter' option is used to wrap the return value of getters for non-required (`@XmlAttribute|Element(required = false)`) values with `java.util.Optional<OriginalRetunType>`.
+
+#### -imm-nofinalclasses
+The '-imm-nofinalclasses' option is used to leave all classes non-final.
 
 ### Usage
 #### JAXB-RI CLI

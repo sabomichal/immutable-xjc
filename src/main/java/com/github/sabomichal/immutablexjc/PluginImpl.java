@@ -69,6 +69,7 @@ public final class PluginImpl extends Plugin {
     private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
     private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-imm-constructordefaults";
     private static final String OPTIONAL_GETTER_OPTION_NAME = "-imm-optionalgetter";
+    private static final String NOFINALCLASSES_OPTION_NAME = "-imm-nofinalclasses";
 
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
@@ -87,6 +88,7 @@ public final class PluginImpl extends Plugin {
     private boolean setDefaultValuesInConstructor;
     private boolean useSimpleBuilderName;
     private boolean optionalGetter;
+    private boolean noFinalClasses;
     private Options options;
 
     @Override
@@ -201,6 +203,7 @@ public final class PluginImpl extends Plugin {
         appendOption(retval, PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME, getMessage("publicConstructorMaxArgs"), n, maxOptionLength);
         appendOption(retval, CONSTRUCTORDEFAULTS_OPTION_NAME, getMessage("setDefaultValuesInConstructor"), n, maxOptionLength);
         appendOption(retval, OPTIONAL_GETTER_OPTION_NAME, getMessage("optionalGetterUsage"), n, maxOptionLength);
+        appendOption(retval, NOFINALCLASSES_OPTION_NAME, getMessage("noFinalClassesUsage"), n, maxOptionLength);
         return retval.toString();
     }
 
@@ -256,6 +259,10 @@ public final class PluginImpl extends Plugin {
         }
         if (args[i].startsWith(OPTIONAL_GETTER_OPTION_NAME)) {
             this.optionalGetter = true;
+            return 1;
+        }
+        if (args[i].startsWith(NOFINALCLASSES_OPTION_NAME)) {
+            this.noFinalClasses = true;
             return 1;
         }
         return 0;
@@ -884,7 +891,7 @@ public final class PluginImpl extends Plugin {
     }
 
     private void makeClassFinal(JDefinedClass clazz) {
-        clazz.mods().setFinal(true);
+        clazz.mods().setFinal(!noFinalClasses);
     }
 
     private void makePropertiesPrivate(JDefinedClass clazz) {
