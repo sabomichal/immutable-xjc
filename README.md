@@ -12,28 +12,6 @@ IMMUTABLE-XJC is a JAXB 2.x XJC plugin for making schema derived classes immutab
 
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
 
-### Release notes
-#### 1.6
-* added an option to set default values in no-arg constructors
-* added an option to generate builder classes that follow the same inheritance hierarchy as their subject classes
-* added an option to generate simple builder names
-* dropped support for java 6
-
-#### 1.5
-* added an option to leave collections mutable
-* added an option to generate public constructors only up to n arguments when builder is used
-
-#### 1.4
-* added an option to generate non-public constructors
-* added an option to generate additional *withAIfNotNull(A a)* builder methods 
-
-#### 1.3
-* builder class copy constructor added
-
-#### 1.2
-* builder class now contains initialised collection fields
-* added generated 'add' methods to incrementally build up the builder collection fields
-
 ### JAXB version
 Plugin is built against JAXB 2.3.3
 
@@ -108,7 +86,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
          <dependency>
              <groupId>com.github.sabomichal</groupId>
              <artifactId>immutable-xjc-plugin</artifactId>
-             <version>1.6.2</version>
+             <version>1.7.0</version>
          </dependency>
      </dependencies>
      <executions>
@@ -138,7 +116,7 @@ IMMUTABLE-XJC can be used also in contract-first webservice client scenarios wit
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6.2</version>
+            <version>1.7.0</version>
         </dependency>
     </dependencies>
     <executions>
@@ -168,7 +146,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6.2</version>
+            <version>1.7.0</version>
         </dependency>
     </dependencies>
     <executions>
@@ -200,7 +178,7 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
         <dependency>
             <groupId>com.github.sabomichal</groupId>
             <artifactId>immutable-xjc-plugin</artifactId>
-            <version>1.6.2</version>
+            <version>1.7.0</version>
         </dependency>
     </dependencies>
     <executions>
@@ -233,7 +211,7 @@ plugins {
 }
 
 dependencies {
-    wsdl2java 'com.github.sabomichal:immutable-xjc-plugin:1.6.2'
+    wsdl2java 'com.github.sabomichal:immutable-xjc-plugin:1.7.0'
 }
 
 wsdl2java {
@@ -246,5 +224,28 @@ wsdl2java {
 }
 ```
 
+### Release notes
+#### 1.7
+* added an option to leave all classes non-final
+#### 1.6
+* added an option to set default values in no-arg constructors
+* added an option to generate builder classes that follow the same inheritance hierarchy as their subject classes
+* added an option to generate simple builder names
+* dropped support for java 6
+
+#### 1.5
+* added an option to leave collections mutable
+* added an option to generate public constructors only up to n arguments when builder is used
+
+#### 1.4
+* added an option to generate non-public constructors
+* added an option to generate additional *withAIfNotNull(A a)* builder methods 
+
+#### 1.3
+* builder class copy constructor added
+
+#### 1.2
+* builder class now contains initialised collection fields
+* added generated 'add' methods to incrementally build up the builder collection fields
 
 If you like it, give it a star, if you don't, write an issue.
