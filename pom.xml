@@ -364,7 +364,7 @@
                     <plugin>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-codegen-plugin</artifactId>
-                        <version>3.5.0</version>
+                        <version>3.5.1</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
