@@ -248,4 +248,4 @@ wsdl2java {
 * builder class now contains initialised collection fields
 * added generated 'add' methods to incrementally build up the builder collection fields
 
-If you like it, give it a star, if you don't, write an issue.
+Initial idea by Milos Kolencik. If you like it, give it a star, if you don't, write an issue.
