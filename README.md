@@ -13,10 +13,10 @@ IMMUTABLE-XJC is a JAXB 2.x XJC plugin for making schema derived classes immutab
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
 
 ### JAXB version
-Plugin is built against JAXB 2.3.3
+Plugin is built against JAXB 4.0.0
 
 ### Java version
-Target Java versions is 1.8, JAXB dependencies are set to be able to built with JDK 11+. 
+Target Java versions is 11 
 
 ### XJC options provided by the plugin
 The plugin provides an '-immutable' option which is enabled by adding its jar file to the XJC classpath. When enabled, additional options can be used to control the behavior of the plugin. See the examples for further information.
@@ -76,35 +76,35 @@ java.exe -Dcom.sun.tools.xjc.XJCFacade.nohack=true\
                     xsom-2.3.1.jar com.sun.tools.xjc.XJCFacade -immutable <schema files>
 ```
 #### Maven
-Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *maven-jaxb2-plugin*.
+Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin of choice. The following example demonstrates the use of the IMMUTABLE-XJC plugin with the mojo *https://github.com/evolvedbinary/jvnet-jaxb-maven-plugin*.
 ```xml
 <plugin>
-     <groupId>org.jvnet.jaxb2.maven2</groupId>
-     <artifactId>maven-jaxb2-plugin</artifactId>
-     <version>0.14.0</version>
-     <dependencies>
-         <dependency>
-             <groupId>com.github.sabomichal</groupId>
-             <artifactId>immutable-xjc-plugin</artifactId>
-             <version>1.7.0</version>
-         </dependency>
-     </dependencies>
-     <executions>
-         <execution>
-             <phase>generate-sources</phase>
-             <goals>
-                 <goal>generate</goal>
-             </goals>
-             <configuration>
-                 <specVersion>2.3.1</specVersion>
-                 <args>
-                     <arg>-immutable</arg>
-                     <arg>-imm-builder</arg>
-                 </args>
-             </configuration>
-         </execution>
-     </executions>
- </plugin>
+    <groupId>com.evolvedbinary.maven.jvnet</groupId>
+    <artifactId>jaxb30-maven-plugin</artifactId>
+    <version>0.15.0</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.sabomichal</groupId>
+            <artifactId>immutable-xjc-plugin</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+    </dependencies>
+    <executions>
+        <execution>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+            <configuration>
+                <specVersion>4.0.0</specVersion>
+                <args>
+                    <arg>-immutable</arg>
+                    <arg>-imm-builder</arg>
+                </args>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 IMMUTABLE-XJC can be used also in contract-first webservice client scenarios with wsimport. The following example demonstrates the usage of the plugin with *jaxws-maven-plugin* mojo.
@@ -225,6 +225,9 @@ wsdl2java {
 ```
 
 ### Release notes
+#### 1.8
+* migrated to JAXB 4.0.0 (Jakarta namespace mostly)
+* dropped support for java 8
 #### 1.7
 * added an option to leave all classes non-final
 #### 1.6

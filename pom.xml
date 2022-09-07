@@ -245,7 +245,7 @@
 									<goal>generate</goal>
 								</goals>
 								<configuration>
-									<specVersion>3.0.1</specVersion>
+									<specVersion>4.0.0</specVersion>
 									<schemaDirectory>src/test/xsd</schemaDirectory>
 									<generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
 									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -362,43 +362,36 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.apache.cxf</groupId>
-                        <artifactId>cxf-codegen-plugin</artifactId>
-                        <version>3.5.2</version>
+                        <groupId>com.sun.xml.ws</groupId>
+                        <artifactId>jaxws-maven-plugin</artifactId>
+                        <version>3.0.0</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
                                 <artifactId>${project.artifactId}</artifactId>
                                 <version>${project.version}</version>
-                                <optional>true</optional>
+                                <optional>false</optional>
                             </dependency>
                         </dependencies>
                         <executions>
                             <execution>
                                 <phase>generate-test-sources</phase>
                                 <goals>
-                                    <goal>wsdl2java</goal>
+                                    <goal>wsimport-test</goal>
                                 </goals>
                                 <configuration>
-                                    <sourceRoot>${project.build.directory}/generated-test-sources/wsdl</sourceRoot>
-                                    <wsdlOptions>
-                                        <wsdlOption>
-                                            <wsdl>${basedir}/src/test/wsdl/basic.wsdl</wsdl>
-                                            <extraargs>
-                                                <extraarg>-xjc-immutable</extraarg>
-                                                <extraarg>-xjc-imm-builder</extraarg>
-                                                <extraarg>-xjc-imm-cc</extraarg>
-                                            </extraargs>
-                                        </wsdlOption>
-                                        <wsdlOption>
-                                            <wsdl>${basedir}/src/test/wsdl/complex.wsdl</wsdl>
-                                            <extraargs>
-                                                <extraarg>-xjc-immutable</extraarg>
-                                                <extraarg>-xjc-imm-builder</extraarg>
-                                                <extraarg>-xjc-imm-cc</extraarg>
-                                            </extraargs>
-                                        </wsdlOption>
-                                    </wsdlOptions>
+                                    <destDir>${project.build.directory}/generated-test-sources/wsdl</destDir>
+                                    <wsdlDirectory>${basedir}/src/test/wsdl</wsdlDirectory>
+<!--                                    <extension>true</extension>-->
+                                    <wsdlFiles>
+                                        <wsdlFile>basic.wsdl</wsdlFile>
+                                        <wsdlFile>complex.wsdl</wsdlFile>
+                                    </wsdlFiles>
+                                    <xjcArgs>
+                                        <xjcArg>-immutable</xjcArg>
+                                        <xjcArg>-imm-builder</xjcArg>
+                                        <xjcArg>-imm-cc</xjcArg>
+                                    </xjcArgs>
                                 </configuration>
                             </execution>
                         </executions>
