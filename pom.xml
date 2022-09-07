@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.sabomichal</groupId>
     <artifactId>immutable-xjc-plugin</artifactId>
@@ -238,24 +239,24 @@
                             </dependency>
                         </dependencies>
                         <executions>
-							<execution>
-								<id>test-model-basic</id>
-								<phase>generate-test-sources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-								<configuration>
-									<specVersion>4.0.0</specVersion>
-									<schemaDirectory>src/test/xsd</schemaDirectory>
-									<generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
-									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
-									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-									<forceRegenerate>true</forceRegenerate>
-									<args>
-										<arg>-immutable</arg>
-									</args>
-								</configuration>
-							</execution>
+                            <execution>
+                                <id>test-model-basic</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <specVersion>4.0.0</specVersion>
+                                    <schemaDirectory>src/test/xsd</schemaDirectory>
+                                    <generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
+                                    <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+                                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                                    <forceRegenerate>true</forceRegenerate>
+                                    <args>
+                                        <arg>-immutable</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>test-model-noinherit</id>
                                 <phase>generate-test-sources</phase>
@@ -268,7 +269,7 @@
                                     <generatePackage>${project.groupId}.immutablexjc.test.noinheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-									<forceRegenerate>true</forceRegenerate>
+                                    <forceRegenerate>true</forceRegenerate>
                                     <args>
                                         <arg>-immutable</arg>
                                         <arg>-imm-builder</arg>
@@ -294,104 +295,182 @@
                                     </args>
                                 </configuration>
                             </execution>
-							<execution>
-								<id>test-model-inherit</id>
-								<phase>generate-test-sources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-								<configuration>
-									<specVersion>3.0.1</specVersion>
-									<schemaDirectory>src/test/xsd</schemaDirectory>
-									<generatePackage>${project.groupId}.immutablexjc.test.inheritbuilder</generatePackage>
-									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
-									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-									<forceRegenerate>true</forceRegenerate>
-									<args>
-										<arg>-immutable</arg>
-										<arg>-imm-inheritbuilder</arg>
-										<arg>-imm-cc</arg>
-										<arg>-imm-simplebuildername</arg>
-									</args>
-								</configuration>
-							</execution>
-							<execution>
-								<id>test-model-misc</id>
-								<phase>generate-test-sources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-								<configuration>
-									<specVersion>3.0.1</specVersion>
-									<schemaDirectory>src/test/xsd</schemaDirectory>
-									<generatePackage>${project.groupId}.immutablexjc.test.misc</generatePackage>
-									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
-									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-									<forceRegenerate>true</forceRegenerate>
-									<args>
-										<arg>-immutable</arg>
-										<arg>-imm-builder</arg>
-										<arg>-imm-cc</arg>
-										<arg>-imm-ifnotnull</arg>
-										<arg>-imm-nopubconstructor</arg>
-										<arg>-imm-pubconstructormaxargs=2</arg>
-										<arg>-imm-skipcollections</arg>
-										<arg>-imm-constructordefaults</arg>
-									</args>
-								</configuration>
-							</execution>
-							<execution>
-								<id>test-model-optionalgetter</id>
-								<phase>generate-test-sources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-								<configuration>
-									<specVersion>3.0.1</specVersion>
-									<schemaDirectory>src/test/xsd</schemaDirectory>
-									<generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
-									<generateDirectory>target/generated-test-sources/xjc</generateDirectory>
-									<addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-									<forceRegenerate>true</forceRegenerate>
-									<args>
-										<arg>-immutable</arg>
-										<arg>-imm-optionalgetter</arg>
-									</args>
-								</configuration>
-							</execution>
+                            <execution>
+                                <id>test-model-inherit</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <specVersion>3.0.1</specVersion>
+                                    <schemaDirectory>src/test/xsd</schemaDirectory>
+                                    <generatePackage>${project.groupId}.immutablexjc.test.inheritbuilder</generatePackage>
+                                    <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+                                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                                    <forceRegenerate>true</forceRegenerate>
+                                    <args>
+                                        <arg>-immutable</arg>
+                                        <arg>-imm-inheritbuilder</arg>
+                                        <arg>-imm-cc</arg>
+                                        <arg>-imm-simplebuildername</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>test-model-misc</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <specVersion>3.0.1</specVersion>
+                                    <schemaDirectory>src/test/xsd</schemaDirectory>
+                                    <generatePackage>${project.groupId}.immutablexjc.test.misc</generatePackage>
+                                    <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+                                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                                    <forceRegenerate>true</forceRegenerate>
+                                    <args>
+                                        <arg>-immutable</arg>
+                                        <arg>-imm-builder</arg>
+                                        <arg>-imm-cc</arg>
+                                        <arg>-imm-ifnotnull</arg>
+                                        <arg>-imm-nopubconstructor</arg>
+                                        <arg>-imm-pubconstructormaxargs=2</arg>
+                                        <arg>-imm-skipcollections</arg>
+                                        <arg>-imm-constructordefaults</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>test-model-optionalgetter</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <specVersion>3.0.1</specVersion>
+                                    <schemaDirectory>src/test/xsd</schemaDirectory>
+                                    <generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
+                                    <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
+                                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                                    <forceRegenerate>true</forceRegenerate>
+                                    <args>
+                                        <arg>-immutable</arg>
+                                        <arg>-imm-optionalgetter</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
+                    <!--                    <plugin>-->
+                    <!--                        <groupId>com.sun.xml.ws</groupId>-->
+                    <!--                        <artifactId>jaxws-maven-plugin</artifactId>-->
+                    <!--                        <version>3.0.0</version>-->
+                    <!--                        <dependencies>-->
+                    <!--                            <dependency>-->
+                    <!--                                <groupId>${project.groupId}</groupId>-->
+                    <!--                                <artifactId>${project.artifactId}</artifactId>-->
+                    <!--                                <version>${project.version}</version>-->
+                    <!--                                <optional>false</optional>-->
+                    <!--                            </dependency>-->
+                    <!--                        </dependencies>-->
+                    <!--                        <executions>-->
+                    <!--                            <execution>-->
+                    <!--                                <phase>generate-test-sources</phase>-->
+                    <!--                                <goals>-->
+                    <!--                                    <goal>wsimport-test</goal>-->
+                    <!--                                </goals>-->
+                    <!--                                <configuration>-->
+                    <!--                                    <destDir>${project.build.directory}/generated-test-sources/wsdl</destDir>-->
+                    <!--                                    <wsdlDirectory>${basedir}/src/test/wsdl</wsdlDirectory>-->
+                    <!--&lt;!&ndash;                                    <extension>true</extension>&ndash;&gt;-->
+                    <!--                                    <wsdlFiles>-->
+                    <!--                                        <wsdlFile>basic.wsdl</wsdlFile>-->
+                    <!--                                        <wsdlFile>complex.wsdl</wsdlFile>-->
+                    <!--                                    </wsdlFiles>-->
+                    <!--                                    <xjcArgs>-->
+                    <!--                                        <xjcArg>-immutable</xjcArg>-->
+                    <!--                                        <xjcArg>-imm-builder</xjcArg>-->
+                    <!--                                        <xjcArg>-imm-cc</xjcArg>-->
+                    <!--                                    </xjcArgs>-->
+                    <!--                                </configuration>-->
+                    <!--                            </execution>-->
+                    <!--                        </executions>-->
+                    <!--                    </plugin>-->
                     <plugin>
-                        <groupId>com.sun.xml.ws</groupId>
-                        <artifactId>jaxws-maven-plugin</artifactId>
-                        <version>3.0.0</version>
+                        <groupId>org.apache.cxf</groupId>
+                        <artifactId>cxf-codegen-plugin</artifactId>
+                        <version>3.5.2</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
                                 <artifactId>${project.artifactId}</artifactId>
                                 <version>${project.version}</version>
-                                <optional>false</optional>
+                                <optional>true</optional>
                             </dependency>
                         </dependencies>
                         <executions>
                             <execution>
                                 <phase>generate-test-sources</phase>
                                 <goals>
-                                    <goal>wsimport-test</goal>
+                                    <goal>wsdl2java</goal>
                                 </goals>
                                 <configuration>
-                                    <destDir>${project.build.directory}/generated-test-sources/wsdl</destDir>
-                                    <wsdlDirectory>${basedir}/src/test/wsdl</wsdlDirectory>
-<!--                                    <extension>true</extension>-->
-                                    <wsdlFiles>
-                                        <wsdlFile>basic.wsdl</wsdlFile>
-                                        <wsdlFile>complex.wsdl</wsdlFile>
-                                    </wsdlFiles>
-                                    <xjcArgs>
-                                        <xjcArg>-immutable</xjcArg>
-                                        <xjcArg>-imm-builder</xjcArg>
-                                        <xjcArg>-imm-cc</xjcArg>
-                                    </xjcArgs>
+                                    <sourceRoot>${project.build.directory}/generated-test-sources/wsdl</sourceRoot>
+                                    <wsdlOptions>
+                                        <wsdlOption>
+                                            <wsdl>${basedir}/src/test/wsdl/basic.wsdl</wsdl>
+                                            <extraargs>
+                                                <extraarg>-xjc-immutable</extraarg>
+                                                <extraarg>-xjc-imm-builder</extraarg>
+                                                <extraarg>-xjc-imm-cc</extraarg>
+                                            </extraargs>
+                                        </wsdlOption>
+                                        <wsdlOption>
+                                            <wsdl>${basedir}/src/test/wsdl/complex.wsdl</wsdl>
+                                            <extraargs>
+                                                <extraarg>-xjc-immutable</extraarg>
+                                                <extraarg>-xjc-imm-builder</extraarg>
+                                                <extraarg>-xjc-imm-cc</extraarg>
+                                            </extraargs>
+                                        </wsdlOption>
+                                    </wsdlOptions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.google.code.maven-replacer-plugin</groupId>
+                        <artifactId>replacer</artifactId>
+                        <version>1.5.3</version>
+                        <executions>
+                            <execution>
+                                <id>replace-for-jakarta</id>
+                                <phase>process-test-sources</phase>
+                                <goals>
+                                    <goal>replace</goal>
+                                </goals>
+                                <configuration>
+                                    <filesToInclude>${project.build.directory}/generated-test-sources/wsdl/**/*.java</filesToInclude>
+                                    <preserveDir>true</preserveDir>
+                                    <replacements>
+                                        <replacement>
+                                            <token>javax.xml.bind</token>
+                                            <value>jakarta.xml.bind</value>
+                                        </replacement>
+                                        <replacement>
+                                            <token>javax.annotation</token>
+                                            <value>jakarta.annotation</value>
+                                        </replacement>
+                                        <replacement>
+                                            <token>javax.jws</token>
+                                            <value>jakarta.jws</value>
+                                        </replacement>
+                                        <replacement>
+                                            <token>javax.xml.ws</token>
+                                            <value>jakarta.xml.ws</value>
+                                        </replacement>
+                                    </replacements>
                                 </configuration>
                             </execution>
                         </executions>
