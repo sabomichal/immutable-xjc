@@ -1,20 +1,21 @@
 package com.github.sabomichal.immutablexjc.test;
 
-import com.github.sabomichal.immutablexjc.test.basic.Declaration;
-import com.github.sabomichal.immutablexjc.test.basic.Model;
-import com.github.sabomichal.immutablexjc.test.basic.NameExpression;
-import com.github.sabomichal.immutablexjc.test.basic.Parameters;
-import org.junit.Test;
-
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
-import jakarta.xml.bind.Unmarshaller;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import com.github.sabomichal.immutablexjc.test.basic.Declaration;
+import com.github.sabomichal.immutablexjc.test.basic.Model;
+import com.github.sabomichal.immutablexjc.test.basic.NameExpression;
+import com.github.sabomichal.immutablexjc.test.basic.Parameters;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import org.junit.jupiter.api.Test;
+
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**

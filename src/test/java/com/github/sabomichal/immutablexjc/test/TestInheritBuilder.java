@@ -1,13 +1,17 @@
 package com.github.sabomichal.immutablexjc.test;
 
-import com.github.sabomichal.immutablexjc.test.inheritbuilder.*;
-import org.junit.Test;
-
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Declaration;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Model;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.NameExpression;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Parameters;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Variable;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**

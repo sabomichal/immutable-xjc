@@ -1,5 +1,9 @@
 package com.github.sabomichal.immutablexjc.test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import com.github.sabomichal.immutablexjc.test.nofinalclasses.Declaration;
 import com.github.sabomichal.immutablexjc.test.nofinalclasses.Model;
 import com.github.sabomichal.immutablexjc.test.nofinalclasses.ObjectFactory;
@@ -13,16 +17,10 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRegistry;
 import jakarta.xml.bind.annotation.XmlType;
 import org.glassfish.jaxb.runtime.v2.runtime.unmarshaller.UnmarshallerImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class TestNoFinalClasses {

@@ -59,22 +59,23 @@ import org.xml.sax.ErrorHandler;
  */
 public final class PluginImpl extends Plugin {
 
-    private static final String BUILDER_OPTION_NAME = "-imm-builder";
-    private static final String SIMPLEBUILDERNAME_OPTION_NAME = "-imm-simplebuildername";
-    private static final String INHERIT_BUILDER_OPTION_NAME = "-imm-inheritbuilder";
-    private static final String CCONSTRUCTOR_OPTION_NAME = "-imm-cc";
-    private static final String WITHIFNOTNULL_OPTION_NAME = "-imm-ifnotnull";
-    private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-imm-nopubconstructor";
-    private static final String PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME = "-imm-pubconstructormaxargs";
-    private static final String SKIPCOLLECTIONS_OPTION_NAME = "-imm-skipcollections";
-    private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-imm-constructordefaults";
-    private static final String OPTIONAL_GETTER_OPTION_NAME = "-imm-optionalgetter";
-    private static final String NOFINALCLASSES_OPTION_NAME = "-imm-nofinalclasses";
+    private static final String OPTION_NAME = "Ximm";
+
+    private static final String BUILDER_OPTION_NAME = "-Ximm-builder";
+    private static final String SIMPLEBUILDERNAME_OPTION_NAME = "-Ximm-simplebuildername";
+    private static final String INHERIT_BUILDER_OPTION_NAME = "-Ximm-inheritbuilder";
+    private static final String CCONSTRUCTOR_OPTION_NAME = "-Ximm-cc";
+    private static final String WITHIFNOTNULL_OPTION_NAME = "-Ximm-ifnotnull";
+    private static final String NOPUBLICCONSTRUCTOR_OPTION_NAME = "-Ximm-nopubconstructor";
+    private static final String PUBLICCONSTRUCTOR_MAXARGS_OPTION_NAME = "-Ximm-pubconstructormaxargs";
+    private static final String SKIPCOLLECTIONS_OPTION_NAME = "-Ximm-skipcollections";
+    private static final String CONSTRUCTORDEFAULTS_OPTION_NAME = "-Ximm-constructordefaults";
+    private static final String OPTIONAL_GETTER_OPTION_NAME = "-Ximm-optionalgetter";
+    private static final String NOFINALCLASSES_OPTION_NAME = "-Ximm-nofinalclasses";
 
     private static final String UNSET_PREFIX = "unset";
     private static final String SET_PREFIX = "set";
     private static final String MESSAGE_PREFIX = "IMMUTABLE-XJC";
-    private static final String OPTION_NAME = "immutable";
     private static final JType[] NO_ARGS = new JType[0];
 
     private final ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());

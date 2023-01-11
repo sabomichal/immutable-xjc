@@ -7,23 +7,26 @@
     <packaging>jar</packaging>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jaxb.version>4.0.1</jaxb.version>
+        <java.version>11</java.version>
 
-        <maven.compiler.release>8</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
         <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
         <maven.test.skip>true</maven.test.skip>
 
-        <jaxb.version>4.0.1</jaxb.version>
         <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
         <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <junit-jupiter.version>5.9.2</junit-jupiter.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -44,9 +47,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -127,6 +130,11 @@
                             </manifestEntries>
                         </archive>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M7</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -258,7 +266,7 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
                                     <forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
+                                        <arg>-Ximm</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -276,8 +284,8 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
 									<forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
-                                        <arg>-imm-builder</arg>
+                                        <arg>-Ximm</arg>
+                                        <arg>-Ximm-builder</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -295,8 +303,8 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
                                     <forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
-                                        <arg>-imm-nofinalclasses</arg>
+                                        <arg>-Ximm</arg>
+                                        <arg>-Ximm-nofinalclasses</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -314,10 +322,10 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
                                     <forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
-                                        <arg>-imm-inheritbuilder</arg>
-                                        <arg>-imm-cc</arg>
-                                        <arg>-imm-simplebuildername</arg>
+                                        <arg>-Ximm</arg>
+                                        <arg>-Ximm-inheritbuilder</arg>
+                                        <arg>-Ximm-cc</arg>
+                                        <arg>-Ximm-simplebuildername</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -335,14 +343,14 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
                                     <forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
-                                        <arg>-imm-builder</arg>
-                                        <arg>-imm-cc</arg>
-                                        <arg>-imm-ifnotnull</arg>
-                                        <arg>-imm-nopubconstructor</arg>
-                                        <arg>-imm-pubconstructormaxargs=2</arg>
-                                        <arg>-imm-skipcollections</arg>
-                                        <arg>-imm-constructordefaults</arg>
+                                        <arg>-Ximm</arg>
+                                        <arg>-Ximm-builder</arg>
+                                        <arg>-Ximm-cc</arg>
+                                        <arg>-Ximm-ifnotnull</arg>
+                                        <arg>-Ximm-nopubconstructor</arg>
+                                        <arg>-Ximm-pubconstructormaxargs=2</arg>
+                                        <arg>-Ximm-skipcollections</arg>
+                                        <arg>-Ximm-constructordefaults</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -360,8 +368,8 @@
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
                                     <forceRegenerate>true</forceRegenerate>
                                     <args>
-                                        <arg>-immutable</arg>
-                                        <arg>-imm-optionalgetter</arg>
+                                        <arg>-Ximm</arg>
+                                        <arg>-Ximm-optionalgetter</arg>
                                     </args>
                                 </configuration>
                             </execution>
@@ -391,17 +399,17 @@
                                         <wsdlOption>
                                             <wsdl>${basedir}/src/test/wsdl/basic.wsdl</wsdl>
                                             <extraargs>
-                                                <extraarg>-xjc-immutable</extraarg>
-                                                <extraarg>-xjc-imm-builder</extraarg>
-                                                <extraarg>-xjc-imm-cc</extraarg>
+                                                <extraarg>-xjc-Ximm</extraarg>
+                                                <extraarg>-xjc-Ximm-builder</extraarg>
+                                                <extraarg>-xjc-Ximm-cc</extraarg>
                                             </extraargs>
                                         </wsdlOption>
                                         <wsdlOption>
                                             <wsdl>${basedir}/src/test/wsdl/complex.wsdl</wsdl>
                                             <extraargs>
-                                                <extraarg>-xjc-immutable</extraarg>
-                                                <extraarg>-xjc-imm-builder</extraarg>
-                                                <extraarg>-xjc-imm-cc</extraarg>
+                                                <extraarg>-xjc-Ximm</extraarg>
+                                                <extraarg>-xjc-Ximm-builder</extraarg>
+                                                <extraarg>-xjc-Ximm-cc</extraarg>
                                             </extraargs>
                                         </wsdlOption>
                                     </wsdlOptions>
