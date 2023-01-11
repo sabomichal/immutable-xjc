@@ -806,16 +806,14 @@ public final class PluginImpl extends Plugin {
         for (JFieldVar field : superclassFields) {
             String propertyName = field.name();
             JType type = field.type();
-            if (type instanceof JDefinedClass) {
-                JMethod getter = getGetterProperty(field, clazz);
-                if (isCollection(field)) {
-                    JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
-                    JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
-                    conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
-                    conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-                } else {
-                    ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
-                }
+            JMethod getter = getGetterProperty(field, clazz);
+            if (isCollection(field)) {
+                JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
+                JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
+                conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
+                conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
+            } else {
+                ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
             }
         }
         for (JFieldVar field : declaredFields) {
