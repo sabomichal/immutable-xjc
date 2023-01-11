@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.sabomichal</groupId>
     <artifactId>immutable-xjc-plugin</artifactId>
@@ -9,9 +8,15 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.release>8</maven.compiler.release>
+        <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+        <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
         <maven.test.skip>true</maven.test.skip>
-        <jaxb.version>4.0.0</jaxb.version>
-        <activation.version>1.2.0</activation.version>
+
+        <jaxb.version>4.0.1</jaxb.version>
+        <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
+        <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
     </properties>
 
     <dependencies>
@@ -27,33 +32,33 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-xjc</artifactId>
             <version>${jaxb.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${jaxb.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.activation</groupId>
-            <artifactId>javax.activation</artifactId>
-            <version>${activation.version}</version>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jakarta.xml.bind-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <version>${jakarta.xml.ws-api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -82,7 +87,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                     <configuration>
                         <delimiters>
                             <delimiter>${*}</delimiter>
@@ -94,7 +99,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.3.0</version>
                     <configuration>
                         <archive>
                             <index>true</index>
@@ -227,9 +232,9 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.evolvedbinary.maven.jvnet</groupId>
-                        <artifactId>jaxb30-maven-plugin</artifactId>
-                        <version>0.15.0</version>
+                        <groupId>com.helger.maven</groupId>
+                        <artifactId>jaxb40-maven-plugin</artifactId>
+                        <version>0.16.1</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
@@ -246,7 +251,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.0</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -264,12 +269,12 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>3.0.1</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.noinheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
                                     <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
-                                    <forceRegenerate>true</forceRegenerate>
+									<forceRegenerate>true</forceRegenerate>
                                     <args>
                                         <arg>-immutable</arg>
                                         <arg>-imm-builder</arg>
@@ -283,7 +288,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>3.0.1</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.nofinalclasses</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -302,7 +307,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>3.0.1</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.inheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -323,7 +328,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>3.0.1</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.misc</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -348,7 +353,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>3.0.1</specVersion>
+                                    <specVersion>4.0.1</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -362,45 +367,10 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!--                    <plugin>-->
-                    <!--                        <groupId>com.sun.xml.ws</groupId>-->
-                    <!--                        <artifactId>jaxws-maven-plugin</artifactId>-->
-                    <!--                        <version>3.0.0</version>-->
-                    <!--                        <dependencies>-->
-                    <!--                            <dependency>-->
-                    <!--                                <groupId>${project.groupId}</groupId>-->
-                    <!--                                <artifactId>${project.artifactId}</artifactId>-->
-                    <!--                                <version>${project.version}</version>-->
-                    <!--                                <optional>false</optional>-->
-                    <!--                            </dependency>-->
-                    <!--                        </dependencies>-->
-                    <!--                        <executions>-->
-                    <!--                            <execution>-->
-                    <!--                                <phase>generate-test-sources</phase>-->
-                    <!--                                <goals>-->
-                    <!--                                    <goal>wsimport-test</goal>-->
-                    <!--                                </goals>-->
-                    <!--                                <configuration>-->
-                    <!--                                    <destDir>${project.build.directory}/generated-test-sources/wsdl</destDir>-->
-                    <!--                                    <wsdlDirectory>${basedir}/src/test/wsdl</wsdlDirectory>-->
-                    <!--&lt;!&ndash;                                    <extension>true</extension>&ndash;&gt;-->
-                    <!--                                    <wsdlFiles>-->
-                    <!--                                        <wsdlFile>basic.wsdl</wsdlFile>-->
-                    <!--                                        <wsdlFile>complex.wsdl</wsdlFile>-->
-                    <!--                                    </wsdlFiles>-->
-                    <!--                                    <xjcArgs>-->
-                    <!--                                        <xjcArg>-immutable</xjcArg>-->
-                    <!--                                        <xjcArg>-imm-builder</xjcArg>-->
-                    <!--                                        <xjcArg>-imm-cc</xjcArg>-->
-                    <!--                                    </xjcArgs>-->
-                    <!--                                </configuration>-->
-                    <!--                            </execution>-->
-                    <!--                        </executions>-->
-                    <!--                    </plugin>-->
                     <plugin>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-codegen-plugin</artifactId>
-                        <version>3.5.2</version>
+                        <version>4.0.0</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
@@ -435,42 +405,6 @@
                                             </extraargs>
                                         </wsdlOption>
                                     </wsdlOptions>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.google.code.maven-replacer-plugin</groupId>
-                        <artifactId>replacer</artifactId>
-                        <version>1.5.3</version>
-                        <executions>
-                            <execution>
-                                <id>replace-for-jakarta</id>
-                                <phase>process-test-sources</phase>
-                                <goals>
-                                    <goal>replace</goal>
-                                </goals>
-                                <configuration>
-                                    <filesToInclude>${project.build.directory}/generated-test-sources/wsdl/**/*.java</filesToInclude>
-                                    <preserveDir>true</preserveDir>
-                                    <replacements>
-                                        <replacement>
-                                            <token>javax.xml.bind</token>
-                                            <value>jakarta.xml.bind</value>
-                                        </replacement>
-                                        <replacement>
-                                            <token>javax.annotation</token>
-                                            <value>jakarta.annotation</value>
-                                        </replacement>
-                                        <replacement>
-                                            <token>javax.jws</token>
-                                            <value>jakarta.jws</value>
-                                        </replacement>
-                                        <replacement>
-                                            <token>javax.xml.ws</token>
-                                            <value>jakarta.xml.ws</value>
-                                        </replacement>
-                                    </replacements>
                                 </configuration>
                             </execution>
                         </executions>
