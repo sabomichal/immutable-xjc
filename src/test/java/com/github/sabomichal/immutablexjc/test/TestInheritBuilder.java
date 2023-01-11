@@ -113,4 +113,17 @@ public class TestInheritBuilder {
         assertNotNull(d2.getBy());
         assertEquals(d1.getBy(), d2.getBy());
     }
+
+    @Test
+    public void testSubclassBuilderCopiesAbstractSuperclassProperties() {
+        TidyBedroom tb1 = TidyBedroom.builder()
+                .withCost(5)
+                .withExperiencePoints(10)
+                .build();
+        TidyBedroom tb2 = TidyBedroom.builder(tb1).build();
+
+        assertNotNull(tb2);
+        assertEquals(tb1.getCost(), tb2.getCost());
+        assertEquals(tb1.getExperiencePoints(), tb2.getExperiencePoints());
+    }
 }
