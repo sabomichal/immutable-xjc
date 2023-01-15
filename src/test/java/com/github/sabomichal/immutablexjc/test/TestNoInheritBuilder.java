@@ -4,14 +4,14 @@ import com.github.sabomichal.immutablexjc.test.noinheritbuilder.Declaration;
 import com.github.sabomichal.immutablexjc.test.noinheritbuilder.Model;
 import com.github.sabomichal.immutablexjc.test.noinheritbuilder.NameExpression;
 import com.github.sabomichal.immutablexjc.test.noinheritbuilder.Parameters;
-import org.junit.Test;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**

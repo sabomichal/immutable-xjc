@@ -1,13 +1,18 @@
 package com.github.sabomichal.immutablexjc.test;
 
-import com.github.sabomichal.immutablexjc.test.inheritbuilder.*;
-import org.junit.Test;
-
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Declaration;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Model;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.NameExpression;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Parameters;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.TidyBedroom;
+import com.github.sabomichal.immutablexjc.test.inheritbuilder.Variable;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
@@ -71,7 +76,7 @@ public class TestInheritBuilder {
     @Test
     public void testSuperclassBuilderIsInherited() {
         // This doesn't really test all that much. It will mostly cause compile errors if the builders do not use inheritance
-        Variable.Builder builder = Declaration.builder();
+        Variable.Builder builder = Declaration.builder().withType("type");
         Variable variable = builder
                 .withName("name")
                 .addBy(NameExpression.builder()
@@ -125,5 +130,13 @@ public class TestInheritBuilder {
         assertNotNull(tb2);
         assertEquals(tb1.getCost(), tb2.getCost());
         assertEquals(tb1.getExperiencePoints(), tb2.getExperiencePoints());
+    }
+
+    @Test
+    public void testRequiredFieldsAreMandatory() {
+        assertThrows(NullPointerException.class, () -> Declaration.builder()
+            .withName("name")
+            //.withType("type") // unset required field throws and exception
+            .build());
     }
 }
