@@ -1,6 +1,6 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.sabomichal/immutable-xjc-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.sabomichal/immutable-xjc-plugin) ![Java CI with Maven](https://github.com/sabomichal/immutable-xjc/workflows/Java%20CI%20with%20Maven/badge.svg)
 ## immutable-xjc
-IMMUTABLE-XJC is a JAXB 2.x XJC plugin for making schema derived classes immutable:
+IMMUTABLE-XJC is a JAXB 4.0 XJC plugin for making schema derived classes immutable:
 
 * removes all setter methods
 * marks class final (can be disabled with the '-Ximm-nofinalclasses' option)
