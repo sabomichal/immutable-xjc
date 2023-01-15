@@ -220,6 +220,7 @@ wsdl2java {
 #### 2.0
 * migrated to JAXB 4.0 (Jakarta namespace mostly)
 * dropped support for java 8 (11 is the target version)
+* added a check for non-null required fields when using a builder
 
 #### 1.7
 * added an option to leave all classes non-final
