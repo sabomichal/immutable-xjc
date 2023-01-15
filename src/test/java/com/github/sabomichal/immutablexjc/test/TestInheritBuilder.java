@@ -1,5 +1,7 @@
 package com.github.sabomichal.immutablexjc.test;
 
+import java.lang.reflect.Executable;
+
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Declaration;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.Model;
 import com.github.sabomichal.immutablexjc.test.inheritbuilder.NameExpression;
@@ -75,7 +77,7 @@ public class TestInheritBuilder {
     @Test
     public void testSuperclassBuilderIsInherited() {
         // This doesn't really test all that much. It will mostly cause compile errors if the builders do not use inheritance
-        Variable.Builder builder = Declaration.builder();
+        Variable.Builder builder = Declaration.builder().withType("type");
         Variable variable = builder
                 .withName("name")
                 .addBy(NameExpression.builder()
@@ -116,5 +118,13 @@ public class TestInheritBuilder {
         assertEquals(d1.getDocumentation(), d2.getDocumentation());
         assertNotNull(d2.getBy());
         assertEquals(d1.getBy(), d2.getBy());
+    }
+
+    @Test
+    public void testRequiredFieldsAreMandatory() {
+        assertThrows(NullPointerException.class, () -> Declaration.builder()
+            .withName("name")
+            //.withType("type") // unset required field throws and exception
+            .build());
     }
 }

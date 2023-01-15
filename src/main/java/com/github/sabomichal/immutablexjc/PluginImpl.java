@@ -79,6 +79,7 @@ public final class PluginImpl extends Plugin {
     private static final JType[] NO_ARGS = new JType[0];
 
     private final ResourceBundle resourceBundle = ResourceBundle.getBundle(PluginImpl.class.getCanonicalName());
+
     private boolean createBuilder;
     private boolean builderInheritance;
     private boolean createCConstructor;
@@ -339,6 +340,12 @@ public final class PluginImpl extends Plugin {
         }
         for (JFieldVar field : declaredFields) {
             if (mustAssign(field)) {
+                if (isRequired(field)) {
+                    JBlock block = method.body();
+                    JConditional conditional = block._if(field.eq(JExpr._null()));
+                    conditional._then()._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
+                                                   .arg("Required field '" + field.name() + "' have to be assigned a value."));
+                }
                 constructorInvocation.arg(JExpr.ref(field.name()));
             }
         }
