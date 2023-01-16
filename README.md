@@ -27,6 +27,9 @@ The '-Ximm' option enables the plugin making the XJC generated classes immutable
 #### -Ximm-builder
 The '-Ximm-builder' option can be used to generate builder like pattern utils for each schema derived class.
 
+#### -Ximm-simplebuildername
+The '-Ximm-simplebuildername' option can be used to generate builders which follow a simpler naming scheme, using Foo.builder() and Foo.Builder instead of Foo.fooBuilder() and Foo.FooBuilder.
+
 #### -Ximm-inheritbuilder
 The '-Ximm-inheritbuilder' option can be used to generate builder classes that follow the same inheritance hierarchy as their subject classes.
 
