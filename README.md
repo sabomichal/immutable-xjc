@@ -187,8 +187,8 @@ Next two examples demonstrates the usage of the plugin with CXF *cxf-codegen-plu
                     <xsdOption>
                         <xsd>${basedir}/wsdl/example.xsd</xsd>
                         <extensionArgs>
-                            <arg>-Ximm</arg>
-                            <arg>-Ximm-builder</arg>
+                            <extensionArg>-Ximm</extensionArg>
+                            <extensionArg>-Ximm-builder</extensionArg>
                         </extensionArgs>
                     </xsdOption>
                 </xsdOptions>
