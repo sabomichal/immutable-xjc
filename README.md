@@ -61,10 +61,10 @@ The '-Ximm-nofinalclasses' option is used to leave all classes non-final.
 #### JAXB-RI CLI
 To use the JAXB-RI XJC command line interface simply add the corresponding java archives to the classpath and execute the XJC main class 'com.sun.tools.xjc.XJCFacade'. The following example demonstrates a working command line for use with JDK 11+ (assuming the needed dependencies are found in the current working directory).
 ```sh
-java.exe -classpath codemodel-4.0.1.jar:\
+java.exe -classpath codemodel-4.0.2.jar:\
                     jakarta.xml.bind-api-4.0.0:\
-                    jaxb-runtime-4.0.1.jar:\                    
-                    jaxb-xjc-4.0.1.jar:\
+                    jaxb-runtime-4.0.2.jar:\                    
+                    jaxb-xjc-4.0.2.jar:\
                     jakarta.activation-api-2.1.0.jar:\
                     immutable-xjc-plugin.jar:\
                     commons-lang3-3.12.0.jar:\
@@ -91,7 +91,7 @@ Maven users simply add the IMMUTABLE-XJC plugin as a dependency to a JAXB plugin
                 <goal>generate</goal>
             </goals>
             <configuration>
-                <specVersion>4.0.1</specVersion>
+                <specVersion>4.0.2</specVersion>
                 <args>
                     <arg>-Ximm</arg>
                     <arg>-Ximm-builder</arg>
@@ -214,8 +214,8 @@ wsdl2java {
             ['-xjc-Ximm', '-xjc-Ximm-builder', 'src/main/resources/wsdl/example.wsdl']
         ]
     wsdlDir = file("$projectDir/src/main/resources/wsdl")
-    cxfVersion = "4.0.1"
-    cxfPluginVersion = "4.0.1"
+    cxfVersion = "4.0.2"
+    cxfPluginVersion = "4.0.2"
 }
 ```
 

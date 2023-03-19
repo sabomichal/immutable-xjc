@@ -259,7 +259,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.basic</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -277,7 +277,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.noinheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -296,7 +296,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.nofinalclasses</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -315,7 +315,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.inheritbuilder</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -336,7 +336,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.misc</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
@@ -361,7 +361,7 @@
                                     <goal>generate</goal>
                                 </goals>
                                 <configuration>
-                                    <specVersion>4.0.1</specVersion>
+                                    <specVersion>4.0.2</specVersion>
                                     <schemaDirectory>src/test/xsd</schemaDirectory>
                                     <generatePackage>${project.groupId}.immutablexjc.test.optionalgetter</generatePackage>
                                     <generateDirectory>target/generated-test-sources/xjc</generateDirectory>
