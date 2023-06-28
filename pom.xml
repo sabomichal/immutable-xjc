@@ -196,6 +196,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+                    <useReleaseProfile>true</useReleaseProfile>
                 </configuration>
             </plugin>
         </plugins>
