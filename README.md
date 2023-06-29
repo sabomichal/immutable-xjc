@@ -13,7 +13,7 @@ IMMUTABLE-XJC is a JAXB 4.0 XJC plugin for making schema derived classes immutab
 Note: Derived classes can be further made serializable using these xjc [customizations](http://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/1.6/jaxb/vendorCustomizations.html#serializable).
 
 ### JAXB version
-Current plugin version is JAXB 4.0 compatible. For JAXB 2.x please use previous minor version of the plugin (1.7.x). 
+Current plugin version is JAXB 4.0 compatible. For JAXB 2.x please use previous major version of the plugin (1.7.x). 
 
 ### Java version
 Current target Java versions is Java 11
