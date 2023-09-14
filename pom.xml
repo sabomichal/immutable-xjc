@@ -16,7 +16,7 @@
         <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
         <maven.test.skip>true</maven.test.skip>
 
-        <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
+        <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
         <jakarta.xml.ws-api.version>4.0.0</jakarta.xml.ws-api.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit-jupiter.version>5.9.3</junit-jupiter.version>
