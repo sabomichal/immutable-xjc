@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <jaxb.version>4.0.4</jaxb.version>
+        <jaxb.version>4.0.5</jaxb.version>
         <java.version>11</java.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
