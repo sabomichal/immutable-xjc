@@ -51,4 +51,9 @@
             <xs:fractionDigits value="3"/>
         </xs:restriction>
     </xs:simpleType>
+    <xs:complexType name="NoOptionalForPrimitive">
+        <xs:sequence>
+            <xs:element name="index" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
 </xs:schema>

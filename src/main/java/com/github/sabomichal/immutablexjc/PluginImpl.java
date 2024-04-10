@@ -341,7 +341,7 @@ public final class PluginImpl extends Plugin {
         }
         for (JFieldVar field : declaredFields) {
             if (mustAssign(field)) {
-                if (isRequired(field)) {
+                if (isRequired(field) && !field.type().isPrimitive()) {
                     JBlock block = method.body();
                     JConditional conditional = block._if(field.eq(JExpr._null()));
                     conditional._then()._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
@@ -939,6 +939,10 @@ public final class PluginImpl extends Plugin {
     }
 
     private boolean isRequired(JFieldVar field) {
+        if (field.type().isPrimitive()) {
+            return true;
+        }
+
         if (getAnnotation(field.annotations(), XmlValue.class.getCanonicalName()).isPresent()) {
             return true;
         }

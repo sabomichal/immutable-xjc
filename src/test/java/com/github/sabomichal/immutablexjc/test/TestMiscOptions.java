@@ -4,6 +4,8 @@ import com.github.sabomichal.immutablexjc.test.misc.Declaration;
 import com.github.sabomichal.immutablexjc.test.misc.Model;
 import com.github.sabomichal.immutablexjc.test.misc.NameExpression;
 import com.github.sabomichal.immutablexjc.test.misc.Parameters;
+import com.github.sabomichal.immutablexjc.test.optionalgetter.DecimalExtensionType;
+import com.github.sabomichal.immutablexjc.test.optionalgetter.NoOptionalForPrimitive;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import org.junit.jupiter.api.Test;
@@ -103,9 +105,13 @@ public class TestMiscOptions {
                        .getDocumentation()
                        .isPresent());
 
-        com.github.sabomichal.immutablexjc.test.optionalgetter.DecimalExtensionType type = new com.github.sabomichal.immutablexjc.test.optionalgetter.DecimalExtensionType(BigDecimal.valueOf(1), "s");
+        DecimalExtensionType type = new DecimalExtensionType(BigDecimal.valueOf(1), "s");
         assertNotNull(type.getValue());
         assertEquals(BigDecimal.class, type.getValue().getClass());
         assertTrue(type.getUnit().isPresent());
+
+        NoOptionalForPrimitive primitive = new NoOptionalForPrimitive(1);
+        assertNotNull(primitive.getIndex());
+        assertEquals(1, primitive.getIndex());
     }
 }
