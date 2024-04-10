@@ -37,4 +37,18 @@
     <xs:complexType name="NameExpression">
         <xs:attribute name="name" type="xs:string"/>
     </xs:complexType>
+    <xs:element name="DecimalExtensionType">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="BaseType">
+                    <xs:attribute name="unit" fixed="s"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="BaseType">
+        <xs:restriction base="xs:decimal">
+            <xs:fractionDigits value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
 </xs:schema>

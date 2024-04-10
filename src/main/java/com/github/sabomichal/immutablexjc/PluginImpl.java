@@ -48,6 +48,7 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.xml.sax.ErrorHandler;
@@ -938,6 +939,10 @@ public final class PluginImpl extends Plugin {
     }
 
     private boolean isRequired(JFieldVar field) {
+        if (getAnnotation(field.annotations(), XmlValue.class.getCanonicalName()).isPresent()) {
+            return true;
+        }
+
         return Stream.of(XmlElement.class, XmlAttribute.class)
                 .map(annotationType ->
                         getAnnotation(field.annotations(), annotationType.getCanonicalName())
