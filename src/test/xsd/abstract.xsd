@@ -18,6 +18,7 @@
             <xs:element name="correlation_id" type="xs:string"/>
             <xs:element name="session_id" type="xs:string"/>
             <xs:element name="return_code" type="xs:string"/>
+            <xs:element name="min_version" type="xs:string" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     <xs:element name="body" type="body"/>
