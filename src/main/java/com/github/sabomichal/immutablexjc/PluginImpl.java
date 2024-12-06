@@ -833,8 +833,10 @@ public final class PluginImpl extends Plugin {
                 JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
                 conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
                 conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-            } else {
+            } else if (isRequired(field)) {
                 ctor.body().assign(JExpr.refthis(propertyName), JExpr.ref(o, propertyName));
+            } else {
+                ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter).invoke("orElse").arg(JExpr._null()));
             }
         }
         return ctor;
