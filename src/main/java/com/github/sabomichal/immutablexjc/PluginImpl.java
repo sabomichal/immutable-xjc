@@ -814,15 +814,16 @@ public final class PluginImpl extends Plugin {
 
         for (JFieldVar field : superclassFields) {
             String propertyName = field.name();
-            JType type = field.type();
             JMethod getter = getGetterProperty(field, clazz);
             if (isCollection(field)) {
                 JVar tmpVar = ctor.body().decl(0, getJavaType(field), "_" + propertyName, JExpr.invoke(o, getter));
                 JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
                 conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
                 conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-            } else {
+            } else if (isRequired(field)) {
                 ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter));
+            } else {
+                ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter).invoke("orElse").arg(JExpr._null()));
             }
         }
         for (JFieldVar field : declaredFields) {
@@ -833,10 +834,6 @@ public final class PluginImpl extends Plugin {
                 JConditional conditional = ctor.body()._if(tmpVar.eq(JExpr._null()));
                 conditional._then().assign(JExpr.refthis(propertyName), getNewCollectionExpression(codeModel, getJavaType(field)));
                 conditional._else().assign(JExpr.refthis(propertyName), getDefensiveCopyExpression(codeModel, getJavaType(field), tmpVar));
-            } else if (isRequired(field)) {
-                ctor.body().assign(JExpr.refthis(propertyName), JExpr.ref(o, propertyName));
-            } else {
-                ctor.body().assign(JExpr.refthis(propertyName), JExpr.invoke(o, getter).invoke("orElse").arg(JExpr._null()));
             }
         }
         return ctor;
