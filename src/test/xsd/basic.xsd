@@ -32,6 +32,7 @@
             <xs:element name="by" type="NameExpression" maxOccurs="unbounded" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="comment" type="xs:string" use="optional"/>
         <xs:anyAttribute/>
     </xs:complexType>
     <xs:complexType name="NameExpression">

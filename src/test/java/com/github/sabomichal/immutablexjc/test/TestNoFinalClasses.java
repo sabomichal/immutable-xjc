@@ -35,7 +35,7 @@ public class TestNoFinalClasses {
         private final String myAdditionalElement;
 
         public MyDeclaration(String myAdditionalElement) {
-            super(new ArrayList<>(), "name", new HashMap<>(), "doc", "type");
+            super(new ArrayList<>(), "name", "comment", new HashMap<>(), "doc", "type");
             this.myAdditionalElement = myAdditionalElement;
         }
 

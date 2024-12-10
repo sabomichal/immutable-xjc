@@ -41,7 +41,7 @@ public class TestBasic {
         by1.add(x1);
         NameExpression y1 = new NameExpression("y");
         by1.add(y1);
-        Declaration declaration1 = new Declaration(by1, "name", new HashMap<>(),"doc", "type");
+        Declaration declaration1 = new Declaration(by1, "name", "comment", new HashMap<>(),"doc", "type");
         parameter.add(declaration1);
 
         List<NameExpression> by2 = new ArrayList<>();
@@ -49,7 +49,7 @@ public class TestBasic {
         by2.add(x2);
         NameExpression y2 = new NameExpression("y");
         by2.add(y2);
-        Declaration declaration2 = new Declaration(by2, "name", new HashMap<>(), "doc", "type");
+        Declaration declaration2 = new Declaration(by2, "name", "comment", new HashMap<>(), "doc", "type");
         parameter.add(declaration2);
 
         Parameters parameters = new Parameters(parameter);
