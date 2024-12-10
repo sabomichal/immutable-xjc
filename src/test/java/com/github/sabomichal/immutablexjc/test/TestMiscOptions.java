@@ -97,11 +97,11 @@ public class TestMiscOptions {
 
     @Test
     public void testOptionalGetter() {
-        assertFalse(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null, null, null, null)
+        assertFalse(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null,  null,null, null, null)
                         .getDocumentation()
                         .isPresent());
 
-        assertTrue(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null, null, "documentation", null)
+        assertTrue(new com.github.sabomichal.immutablexjc.test.optionalgetter.Declaration(null, null, null, null, "documentation", null)
                        .getDocumentation()
                        .isPresent());
 

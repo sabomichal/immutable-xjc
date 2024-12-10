@@ -1,47 +1,6 @@
 package com.github.sabomichal.immutablexjc;
 
-import java.beans.Introspector;
-import java.io.StringWriter;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import com.sun.codemodel.JAnnotationUse;
-import com.sun.codemodel.JAnnotationValue;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JConditional;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JFormatter;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JVar;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -52,6 +11,15 @@ import jakarta.xml.bind.annotation.XmlValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.xml.sax.ErrorHandler;
+
+import java.beans.Introspector;
+import java.io.StringWriter;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * IMMUTABLE-XJC plugin implementation.
@@ -213,9 +181,7 @@ public final class PluginImpl extends Plugin {
     private void appendOption(StringBuilder retval, String option, String description, String n, int optionColumnWidth) {
         retval.append("  ");
         retval.append(option);
-        for (int i = option.length(); i < optionColumnWidth; i++) {
-            retval.append(' ');
-        }
+        retval.append(" ".repeat(Math.max(0, optionColumnWidth - option.length())));
         retval.append(" :  ");
         retval.append(description);
         retval.append(n);
@@ -345,7 +311,7 @@ public final class PluginImpl extends Plugin {
                     JBlock block = method.body();
                     JConditional conditional = block._if(field.eq(JExpr._null()));
                     conditional._then()._throw(JExpr._new(builderClass.owner().ref(NullPointerException.class))
-                                                   .arg("Required field '" + field.name() + "' have to be assigned a value."));
+                            .arg("Required field '" + field.name() + "' have to be assigned a value."));
                 }
                 constructorInvocation.arg(JExpr.ref(field.name()));
             }
