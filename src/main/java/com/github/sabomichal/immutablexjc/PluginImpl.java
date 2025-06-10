@@ -429,6 +429,12 @@ public final class PluginImpl extends Plugin {
 
         if (inherit) {
             generateSuperCall(method);
+        } else if(isCollection(field)) {
+            method.body().add(field.invoke("clear"));
+            String methodName = isMap(field) ? "putAll" : "addAll";
+            JVar param = generateMethodParameter(method, field);
+            JInvocation invocation = field.invoke(methodName).arg(param);
+            method.body().add(invocation);
         } else {
             String methodName = isMap(field) ? "put" : "add";
             JInvocation invocation = JExpr.refthis(fieldName).invoke(methodName);
