@@ -391,6 +391,13 @@ public final class PluginImpl extends Plugin {
         if (inherit) {
             generateMethodParameter(method, field);
             generateSuperCall(method);
+        } else if(isCollection(field)) {
+            final JFieldRef builderCollectionField = JExpr.refthis(field.name());
+            method.body().add(builderCollectionField.invoke("clear"));
+            String methodName = isMap(field) ? "putAll" : "addAll";
+            JVar param = generateMethodParameter(method, field);
+            JInvocation invocation = builderCollectionField.invoke(methodName).arg(param);
+            method.body().add(invocation);
         } else {
             generatePropertyAssignment(method, field);
         }
@@ -429,12 +436,6 @@ public final class PluginImpl extends Plugin {
 
         if (inherit) {
             generateSuperCall(method);
-        } else if(isCollection(field)) {
-            method.body().add(field.invoke("clear"));
-            String methodName = isMap(field) ? "putAll" : "addAll";
-            JVar param = generateMethodParameter(method, field);
-            JInvocation invocation = field.invoke(methodName).arg(param);
-            method.body().add(invocation);
         } else {
             String methodName = isMap(field) ? "put" : "add";
             JInvocation invocation = JExpr.refthis(fieldName).invoke(methodName);
