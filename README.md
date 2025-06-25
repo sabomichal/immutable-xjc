@@ -34,7 +34,7 @@ The '-Ximm-simplebuildername' option can be used to generate builders which foll
 The '-Ximm-inheritbuilder' option can be used to generate builder classes that follow the same inheritance hierarchy as their subject classes.
 
 #### -Ximm-cc
-The '-Ximm-cc' option can only be used together with '-Ximm-builder' option and it is used to generate builder class copy construstructor, initialising builder with object of given class.
+The '-Ximm-cc' option can only be used together with '-Ximm-builder' option and it is used to generate builder class copy constructor, initialising builder with object of given class.
 
 #### -Ximm-ifnotnull
 The '-Ximm-ifnotnull' option can only be used together with '-Ximm-builder' option and it is used to add an additional withAIfNotNull(A a) method for all non-primitive fields A in the generated builders.
