@@ -394,10 +394,10 @@ public final class PluginImpl extends Plugin {
         } else if(isCollection(field)) {
             final JFieldRef builderCollectionField = JExpr.refthis(field.name());
             method.body().add(builderCollectionField.invoke("clear"));
-            String methodName = isMap(field) ? "putAll" : "addAll";
             JVar param = generateMethodParameter(method, field);
-            JInvocation invocation = builderCollectionField.invoke(methodName).arg(param);
-            method.body().add(invocation);
+            JConditional conditional = method.body()._if(param.ne(JExpr._null()));
+            conditional._then()
+                    .add(builderCollectionField.invoke(isMap(field) ? "putAll" : "addAll").arg(param));
         } else {
             generatePropertyAssignment(method, field);
         }
