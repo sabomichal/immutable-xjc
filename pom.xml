@@ -458,15 +458,15 @@
     </scm>
 
     <distributionManagement>
-        <snapshotRepository>
+        <!--snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus snapshot repository</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
+        </snapshotRepository-->
         <repository>
-            <id>sonatype-nexus-staging</id>
+            <id>ossrh-staging-api</id>
             <name>Sonatype Nexus release repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 </project>
