@@ -232,4 +232,31 @@ public class TestBuilder {
         assertThrows(NoSuchMethodException.class, () ->
             Declaration.class.getMethod("declarationBuilder", Declaration.class));
     }
+
+    @Test
+    public void testBuilderWithUppercaseCollection() {
+        List<String> uris = new ArrayList<>();
+        uris.add("http://example.com/1");
+        uris.add("http://example.com/2");
+
+        Declaration d = Declaration.declarationBuilder()
+                .withType("t")
+                .withName("n")
+                .addUri("http://example.com/a")
+                .withUri(uris)
+                .build();
+        assertEquals(2, d.getURI().size());
+        assertEquals("http://example.com/1", d.getURI().get(0));
+        assertThrows(UnsupportedOperationException.class, () -> d.getURI().add("x"));
+    }
+
+    @Test
+    public void testBuilderWithUppercaseAttribute() {
+        Declaration d = Declaration.declarationBuilder()
+                .withType("t")
+                .withName("n")
+                .withCid("cid-xyz")
+                .build();
+        assertEquals("cid-xyz", d.getCID());
+    }
 }

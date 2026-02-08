@@ -125,6 +125,24 @@ public class TestInheritBuilder {
     }
 
     @Test
+    public void testCopyConstructorWithUppercaseFields() {
+        Declaration d1 = Declaration.builder()
+                .withType("t")
+                .withName("n")
+                .withCid("cid-123")
+                .addUri("http://example.com/1")
+                .addUri("http://example.com/2")
+                .build();
+
+        Declaration d2 = Declaration.builder(d1).build();
+        assertNotNull(d2);
+        assertEquals("cid-123", d2.getCID());
+        assertEquals(2, d2.getURI().size());
+        assertEquals("http://example.com/1", d2.getURI().get(0));
+        assertEquals("http://example.com/2", d2.getURI().get(1));
+    }
+
+    @Test
     public void testCopyConstructorWithAbstractSuperclass() {
         // TidyBedroom extends abstract Task — copy must preserve Task's cost
         TidyBedroom tb1 = TidyBedroom.builder()

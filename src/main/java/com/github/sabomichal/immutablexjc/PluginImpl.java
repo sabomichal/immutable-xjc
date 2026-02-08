@@ -865,6 +865,39 @@ public final class PluginImpl extends Plugin {
                     JFormatter f = new JFormatter(sw);
                     annotationValue.generate(f);
                     getter = clazz.getMethod("get" + sw.toString().replaceAll("\"", ""), NO_ARGS);
+                    if (getter == null) {
+                        getter = clazz.getMethod("is" + sw.toString().replaceAll("\"", ""), NO_ARGS);
+                    }
+                }
+            }
+        }
+        // Also check @XmlAttribute name (issue #61)
+        if (getter == null) {
+            Optional<JAnnotationUse> xmlAttributeAnnotation = getAnnotation(field.annotations(), XmlAttribute.class.getCanonicalName());
+            if (xmlAttributeAnnotation.isPresent()) {
+                JAnnotationValue annotationValue = xmlAttributeAnnotation.get().getAnnotationMembers().get("name");
+                if (annotationValue != null) {
+                    StringWriter sw = new StringWriter();
+                    JFormatter f = new JFormatter(sw);
+                    annotationValue.generate(f);
+                    getter = clazz.getMethod("get" + sw.toString().replaceAll("\"", ""), NO_ARGS);
+                    if (getter == null) {
+                        getter = clazz.getMethod("is" + sw.toString().replaceAll("\"", ""), NO_ARGS);
+                    }
+                }
+            }
+        }
+        // Case-insensitive fallback for uppercase property names (issue #61)
+        if (getter == null) {
+            String getterNameLower = ("get" + field.name()).toLowerCase();
+            String isGetterNameLower = ("is" + field.name()).toLowerCase();
+            for (JMethod method : clazz.methods()) {
+                if (method.params().isEmpty()) {
+                    String methodNameLower = method.name().toLowerCase();
+                    if (methodNameLower.equals(getterNameLower) || methodNameLower.equals(isGetterNameLower)) {
+                        getter = method;
+                        break;
+                    }
                 }
             }
         }

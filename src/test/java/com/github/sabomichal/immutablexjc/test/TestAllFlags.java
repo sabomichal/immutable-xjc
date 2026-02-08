@@ -204,4 +204,14 @@ public class TestAllFlags {
     public void testCopyConstructorNullThrowsNPE() {
         assertThrows(NullPointerException.class, () -> Declaration.declarationBuilder(null));
     }
+
+    @Test
+    public void testUppercaseCollectionMutable() {
+        // -Ximm-skipcollections: URI collection should be mutable
+        Declaration d = Declaration.declarationBuilder()
+                .withType("t").withName("n").build();
+        d.getURI().add("http://example.com");
+        assertEquals(1, d.getURI().size());
+        assertEquals("http://example.com", d.getURI().get(0));
+    }
 }

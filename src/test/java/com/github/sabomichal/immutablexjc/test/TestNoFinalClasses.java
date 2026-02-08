@@ -41,8 +41,8 @@ public class TestNoFinalClasses {
         private final String myAdditionalElement;
 
         public MyDeclaration(String myAdditionalElement) {
-            super(new ArrayList<>(), "name", null, new HashMap<>(),
-                    new ArrayList<>(), null, "doc", "type");
+            super(new ArrayList<>(), "name", null, null, new HashMap<>(),
+                    new ArrayList<>(), new ArrayList<>(), null, "doc", "type");
             this.myAdditionalElement = myAdditionalElement;
         }
 
@@ -112,9 +112,9 @@ public class TestNoFinalClasses {
     @Test
     public void testCollectionsStillUnmodifiable() {
         Declaration d = new Declaration(
-                Collections.emptyList(), "n", null, new HashMap<>(),
+                Collections.emptyList(), "n", null, null, new HashMap<>(),
                 Collections.singletonList(new NameExpression("a")),
-                null, "doc", "t");
+                Collections.emptyList(), null, "doc", "t");
         assertThrows(UnsupportedOperationException.class, () ->
                 d.getBy().add(new NameExpression("z")));
     }
