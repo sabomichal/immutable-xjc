@@ -1,10 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<model xmlns="http://a.b.c.com/d">
+<model xmlns="http://immutablexjc.sabomichal.github.com/test" status="ACTIVE">
 	<parameters>
-		<parameter type="Double" name="x">
+		<parameter type="Double" name="x" comment="a variable">
+			<tags>math</tags>
+			<tags>numeric</tags>
 			<by name="a"/>
 			<by name="b"/>
+			<documentation>test documentation</documentation>
 		</parameter>
 	</parameters>
+	<tasks>
+		<doLaundry cost="5"/>
+		<washCar cost="10"/>
+		<tidyBedroom cost="3" experiencePoints="15"/>
+	</tasks>
+	<metadata>
+		<author>Test Author</author>
+		<version>1.0</version>
+		<created>2025-01-01</created>
+		<revision>1</revision>
+		<active>true</active>
+		<priority>5</priority>
+	</metadata>
 </model>

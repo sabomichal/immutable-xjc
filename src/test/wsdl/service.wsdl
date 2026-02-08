@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="TestService"
+                  targetNamespace="http://immutablexjc.sabomichal.github.com/test/wsdl"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:tns="http://immutablexjc.sabomichal.github.com/test/wsdl"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:model="http://immutablexjc.sabomichal.github.com/test">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="http://immutablexjc.sabomichal.github.com/test/wsdl"
+                   elementFormDefault="qualified"
+                   xmlns:tns="http://immutablexjc.sabomichal.github.com/test/wsdl">
+
+            <xs:import namespace="http://immutablexjc.sabomichal.github.com/test"
+                       schemaLocation="../xsd/unified.xsd"/>
+
+            <!-- Request/Response wrappers -->
+            <xs:element name="CreateDeclarationRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                        <xs:element name="type" type="xs:string"/>
+                        <xs:element name="documentation" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="CreateDeclarationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string" minOccurs="0"/>
+                        <xs:element name="type" type="xs:string" minOccurs="0"/>
+                        <xs:element name="documentation" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GetMetadataRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GetMetadataResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="author" type="xs:string" minOccurs="0"/>
+                        <xs:element name="version" type="xs:string" minOccurs="0"/>
+                        <xs:element name="created" type="xs:string" minOccurs="0"/>
+                        <xs:element name="revision" type="xs:int" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ProcessTasksRequest">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="taskCount" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ProcessTasksResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="processedCount" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ProcessingFault">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="errorCode" type="xs:string"/>
+                        <xs:element name="errorMessage" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+        </xs:schema>
+    </wsdl:types>
+
+    <!-- Messages -->
+    <wsdl:message name="CreateDeclarationInput">
+        <wsdl:part name="parameters" element="tns:CreateDeclarationRequest"/>
+    </wsdl:message>
+    <wsdl:message name="CreateDeclarationOutput">
+        <wsdl:part name="parameters" element="tns:CreateDeclarationResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="GetMetadataInput">
+        <wsdl:part name="parameters" element="tns:GetMetadataRequest"/>
+    </wsdl:message>
+    <wsdl:message name="GetMetadataOutput">
+        <wsdl:part name="parameters" element="tns:GetMetadataResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="ProcessTasksInput">
+        <wsdl:part name="parameters" element="tns:ProcessTasksRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ProcessTasksOutput">
+        <wsdl:part name="parameters" element="tns:ProcessTasksResponse"/>
+    </wsdl:message>
+    <wsdl:message name="ProcessingFaultMessage">
+        <wsdl:part name="fault" element="tns:ProcessingFault"/>
+    </wsdl:message>
+
+    <!-- Port Type -->
+    <wsdl:portType name="TestServicePortType">
+        <wsdl:operation name="createDeclaration">
+            <wsdl:input message="tns:CreateDeclarationInput"/>
+            <wsdl:output message="tns:CreateDeclarationOutput"/>
+        </wsdl:operation>
+        <wsdl:operation name="getMetadata">
+            <wsdl:input message="tns:GetMetadataInput"/>
+            <wsdl:output message="tns:GetMetadataOutput"/>
+        </wsdl:operation>
+        <wsdl:operation name="processTasks">
+            <wsdl:input message="tns:ProcessTasksInput"/>
+            <wsdl:output message="tns:ProcessTasksOutput"/>
+            <wsdl:fault name="ProcessingFault" message="tns:ProcessingFaultMessage"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <!-- Binding -->
+    <wsdl:binding name="TestServiceBinding" type="tns:TestServicePortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="createDeclaration">
+            <soap:operation soapAction="createDeclaration"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getMetadata">
+            <soap:operation soapAction="getMetadata"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="processTasks">
+            <soap:operation soapAction="processTasks"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+            <wsdl:fault name="ProcessingFault"><soap:fault name="ProcessingFault" use="literal"/></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <!-- Service -->
+    <wsdl:service name="TestService">
+        <wsdl:port name="TestServicePort" binding="tns:TestServiceBinding">
+            <soap:address location="http://localhost:8080/test"/>
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>

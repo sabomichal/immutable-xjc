@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://immutablexjc.sabomichal.github.com/test"
+           elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://immutablexjc.sabomichal.github.com/test">
+
+    <!-- Root element -->
+    <xs:element name="model">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="parameters" type="Parameters"/>
+                <xs:element name="tasks" type="TaskList" minOccurs="0"/>
+                <xs:element name="metadata" type="Metadata" minOccurs="0"/>
+                <xs:element name="configuration" type="Configuration" minOccurs="0"/>
+            </xs:sequence>
+            <xs:attribute name="status" type="StatusType" default="ACTIVE"/>
+        </xs:complexType>
+        <xs:unique name="name">
+            <xs:selector xpath="*/*"/>
+            <xs:field xpath="@name"/>
+        </xs:unique>
+    </xs:element>
+
+    <!-- Enumeration type -->
+    <xs:simpleType name="StatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="INACTIVE"/>
+            <xs:enumeration value="PENDING"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Collection container with polymorphic choice -->
+    <xs:complexType name="Parameters">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="parameter" type="Declaration"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Abstract base entity (level 1 of 3-level inheritance) -->
+    <xs:complexType name="BaseEntity" abstract="true">
+        <xs:sequence>
+            <xs:element name="tags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="description" type="xs:string" use="optional"/>
+        <xs:anyAttribute/>
+    </xs:complexType>
+
+    <!-- Concrete mid-level (level 2) -->
+    <xs:complexType name="Variable">
+        <xs:complexContent>
+            <xs:extension base="BaseEntity">
+                <xs:sequence>
+                    <xs:element name="by" type="NameExpression" maxOccurs="unbounded" minOccurs="0"/>
+                </xs:sequence>
+                <xs:attribute name="comment" type="xs:string" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Concrete leaf (level 3) with default value and required attribute -->
+    <xs:complexType name="Declaration">
+        <xs:complexContent>
+            <xs:extension base="Variable">
+                <xs:sequence>
+                    <xs:element name="documentation" type="xs:string" minOccurs="0" default="test"/>
+                </xs:sequence>
+                <xs:attribute name="type" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Simple single-field type -->
+    <xs:complexType name="NameExpression">
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Abstract task base with required primitive -->
+    <xs:complexType name="Task" abstract="true">
+        <xs:attribute name="cost" type="xs:int" use="required"/>
+    </xs:complexType>
+
+    <!-- Concrete task subtypes for polymorphic testing -->
+    <xs:complexType name="DoLaundry">
+        <xs:complexContent>
+            <xs:extension base="Task"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="WashCar">
+        <xs:complexContent>
+            <xs:extension base="Task"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="TidyBedroom">
+        <xs:complexContent>
+            <xs:extension base="Task">
+                <xs:attribute name="experiencePoints" type="xs:int" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Polymorphic task container -->
+    <xs:complexType name="TaskList">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="doLaundry" type="DoLaundry"/>
+            <xs:element name="washCar" type="WashCar"/>
+            <xs:element name="tidyBedroom" type="TidyBedroom"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Many-field type for pubconstructormaxargs testing (7 fields) -->
+    <xs:complexType name="Metadata">
+        <xs:sequence>
+            <xs:element name="author" type="xs:string"/>
+            <xs:element name="version" type="xs:string"/>
+            <xs:element name="created" type="xs:string"/>
+            <xs:element name="modified" type="xs:string" minOccurs="0"/>
+            <xs:element name="revision" type="xs:int"/>
+            <xs:element name="active" type="xs:boolean"/>
+            <xs:element name="priority" type="xs:short"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Simple content extension with restricted decimal base -->
+    <xs:simpleType name="BaseType">
+        <xs:restriction base="xs:decimal">
+            <xs:fractionDigits value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="DecimalExtensionType">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="BaseType">
+                    <xs:attribute name="unit" fixed="s"/>
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Primitive element type (for Optional-does-not-wrap-primitive testing) -->
+    <xs:complexType name="NoOptionalForPrimitive">
+        <xs:sequence>
+            <xs:element name="index" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Configuration type with default values (string defaults only; non-string defaults cause compilation issues with constructordefaults) -->
+    <xs:complexType name="Configuration">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="description" type="xs:string" minOccurs="0" default="default config"/>
+            <xs:element name="enabled" type="xs:boolean"/>
+            <xs:element name="maxRetries" type="xs:int"/>
+            <xs:element name="status" type="StatusType"/>
+            <xs:element name="labels" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>
