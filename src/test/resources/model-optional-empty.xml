@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model xmlns="http://immutablexjc.sabomichal.github.com/test" status="ACTIVE">
+	<parameters>
+		<parameter type="String" name="minimal">
+		</parameter>
+	</parameters>
+	<tasks>
+		<doLaundry cost="1"/>
+		<tidyBedroom cost="2"/>
+	</tasks>
+	<metadata>
+		<author>Author</author>
+		<version>1.0</version>
+		<created>2025-01-01</created>
+		<revision>0</revision>
+		<active>false</active>
+		<priority>0</priority>
+	</metadata>
+</model>
