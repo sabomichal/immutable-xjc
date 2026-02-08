@@ -8,7 +8,7 @@
 
     <properties>
         <jaxb.version>4.0.5</jaxb.version>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>${java.version}</maven.compiler.release>

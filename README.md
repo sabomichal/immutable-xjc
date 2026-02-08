@@ -16,7 +16,7 @@ Note: Derived classes can be further made serializable using these xjc [customiz
 Current plugin version is JAXB 4.0 compatible. For JAXB 2.x please use previous major version of the plugin (1.7.x). 
 
 ### Java version
-Current target Java versions is Java 11
+Current target Java versions is Java 17
 
 ### XJC options provided by the plugin
 The plugin provides an '-Ximm' option which is enabled by adding its jar file to the XJC classpath. When enabled, additional options can be used to control the behavior of the plugin. See the examples for further information.
