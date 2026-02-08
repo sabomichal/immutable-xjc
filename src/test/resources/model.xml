@@ -2,11 +2,13 @@
 
 <model xmlns="http://immutablexjc.sabomichal.github.com/test" status="ACTIVE">
 	<parameters>
-		<parameter type="Double" name="x" comment="a variable">
+		<parameter type="Double" name="x" comment="a variable" CID="cid-123">
 			<tags>math</tags>
 			<tags>numeric</tags>
 			<by name="a"/>
 			<by name="b"/>
+			<URI>http://example.com/1</URI>
+			<URI>http://example.com/2</URI>
 			<documentation>test documentation</documentation>
 		</parameter>
 	</parameters>

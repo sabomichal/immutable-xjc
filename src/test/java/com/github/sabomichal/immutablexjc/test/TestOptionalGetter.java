@@ -241,4 +241,24 @@ public class TestOptionalGetter {
     public void testCopyConstructorNullThrowsNPE() {
         assertThrows(NullPointerException.class, () -> Declaration.declarationBuilder(null));
     }
+
+    @Test
+    public void testUppercaseAttributeOptionalGetter() throws Exception {
+        // CID is optional attribute → Optional<String>
+        Method getCID = BaseEntity.class.getMethod("getCID");
+        assertEquals(Optional.class, getCID.getReturnType());
+
+        Variable v = Variable.variableBuilder().withName("n").build();
+        assertTrue(v.getCID().isEmpty());
+
+        Variable v2 = Variable.variableBuilder().withName("n").withCid("cid-123").build();
+        assertEquals("cid-123", v2.getCID().orElse(null));
+    }
+
+    @Test
+    public void testUppercaseCollectionNotWrappedInOptional() throws Exception {
+        // URI collection getter returns List (not Optional<List>)
+        Method getURI = Variable.class.getMethod("getURI");
+        assertEquals(java.util.List.class, getURI.getReturnType());
+    }
 }

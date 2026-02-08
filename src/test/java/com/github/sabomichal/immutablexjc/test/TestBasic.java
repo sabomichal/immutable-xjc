@@ -46,6 +46,10 @@ public class TestBasic {
         assertEquals("a variable", decl.getComment());
         assertEquals(2, decl.getBy().size());
         assertEquals("test documentation", decl.getDocumentation());
+        // uppercase property fields
+        assertEquals(2, decl.getURI().size());
+        assertEquals("http://example.com/1", decl.getURI().get(0));
+        assertEquals("cid-123", decl.getCID());
         // tasks
         assertNotNull(model.getTasks());
         // metadata
@@ -62,8 +66,8 @@ public class TestBasic {
         byList.add(new NameExpression("b"));
 
         Declaration decl = new Declaration(
-                Collections.emptyList(), "x", null, new HashMap<>(),
-                byList, null, "doc", "Double");
+                Collections.emptyList(), "x", null, null, new HashMap<>(),
+                byList, Collections.emptyList(), null, "doc", "Double");
 
         Parameters params = new Parameters(Collections.singletonList(decl));
         Model model = new Model(params, null, null, null, StatusType.ACTIVE);
@@ -123,8 +127,8 @@ public class TestBasic {
     @Test
     public void testPublicAllArgsConstructor() throws Exception {
         Constructor<?> ctor = Declaration.class.getConstructor(
-                List.class, String.class, String.class, Map.class,
-                List.class, String.class, String.class, String.class);
+                List.class, String.class, String.class, String.class, Map.class,
+                List.class, List.class, String.class, String.class, String.class);
         assertTrue(Modifier.isPublic(ctor.getModifiers()));
     }
 
@@ -132,7 +136,7 @@ public class TestBasic {
     public void testListCollectionIsUnmodifiable() {
         List<NameExpression> byList = new ArrayList<>();
         byList.add(new NameExpression("a"));
-        Variable v = new Variable(Collections.emptyList(), "n", null, new HashMap<>(), byList, null);
+        Variable v = new Variable(Collections.emptyList(), "n", null, null, new HashMap<>(), byList, Collections.emptyList(), null);
         assertThrows(UnsupportedOperationException.class, () -> v.getBy().add(new NameExpression("z")));
     }
 
@@ -140,19 +144,21 @@ public class TestBasic {
     public void testMapCollectionIsUnmodifiable() {
         Map<QName, String> attrs = new HashMap<>();
         attrs.put(new QName("test"), "value");
-        Variable v = new Variable(Collections.emptyList(), "n", null, attrs, Collections.emptyList(), null);
+        Variable v = new Variable(Collections.emptyList(), "n", null, null, attrs, Collections.emptyList(), Collections.emptyList(), null);
         assertThrows(UnsupportedOperationException.class, () -> v.getOtherAttributes().put(new QName("x"), "y"));
     }
 
     @Test
     public void testEmptyCollectionReturnedForNull() {
-        Variable v = new Variable(null, "n", null, null, null, null);
+        Variable v = new Variable(null, "n", null, null, null, null, null, null);
         assertNotNull(v.getBy());
         assertTrue(v.getBy().isEmpty());
         assertNotNull(v.getOtherAttributes());
         assertTrue(v.getOtherAttributes().isEmpty());
         assertNotNull(v.getTags());
         assertTrue(v.getTags().isEmpty());
+        assertNotNull(v.getURI());
+        assertTrue(v.getURI().isEmpty());
     }
 
     @Test
@@ -193,7 +199,7 @@ public class TestBasic {
     public void testDefensiveCopyForList() {
         List<NameExpression> original = new ArrayList<>();
         original.add(new NameExpression("a"));
-        Variable v = new Variable(Collections.emptyList(), "n", null, new HashMap<>(), original, null);
+        Variable v = new Variable(Collections.emptyList(), "n", null, null, new HashMap<>(), original, Collections.emptyList(), null);
         original.add(new NameExpression("z"));  // modify original after construction
         assertEquals(1, v.getBy().size());  // object unaffected
     }
@@ -202,8 +208,22 @@ public class TestBasic {
     public void testDefensiveCopyForMap() {
         Map<QName, String> original = new HashMap<>();
         original.put(new QName("test"), "value");
-        Variable v = new Variable(Collections.emptyList(), "n", null, original, Collections.emptyList(), null);
+        Variable v = new Variable(Collections.emptyList(), "n", null, null, original, Collections.emptyList(), Collections.emptyList(), null);
         original.put(new QName("extra"), "extra");  // modify original after construction
         assertEquals(1, v.getOtherAttributes().size());  // object unaffected
+    }
+
+    @Test
+    public void testUppercaseCollectionFieldIsUnmodifiable() {
+        List<String> uris = new ArrayList<>();
+        uris.add("http://example.com");
+        Variable v = new Variable(Collections.emptyList(), "n", null, null, new HashMap<>(), Collections.emptyList(), uris, null);
+        assertThrows(UnsupportedOperationException.class, () -> v.getURI().add("http://other.com"));
+    }
+
+    @Test
+    public void testUppercaseAttributeFieldWorks() {
+        Variable v = new Variable(Collections.emptyList(), "n", null, "cid-abc", new HashMap<>(), Collections.emptyList(), Collections.emptyList(), null);
+        assertEquals("cid-abc", v.getCID());
     }
 }
