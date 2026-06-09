@@ -416,7 +416,7 @@
                     <plugin>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-codegen-plugin</artifactId>
-                        <version>4.0.4</version>
+                        <version>4.2.1</version>
                         <dependencies>
                             <dependency>
                                 <groupId>${project.groupId}</groupId>
