@@ -21,6 +21,7 @@ semantic versioning:
    git tag -a vX.Y.Z -m "vX.Y.Z"
    ```
 2. Deploy. The `sign` profile signs the artifacts, and the deployment is published automatically after validation.
+   The profile has to be enabled explicitly, `gpg.passphrase` from `settings.xml` does not activate it.
    On Windows point the plugin to the GnuPG installation holding the key, the `gpg` bundled with Git Bash has an empty keyring:
    ```shell
    mvn -B clean deploy -Psign -Dgpg.executable=C:/bin/GnuPG/bin/gpg.exe
