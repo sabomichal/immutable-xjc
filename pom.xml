@@ -8,10 +8,13 @@
 
     <properties>
         <jaxb.version>4.0.8</jaxb.version>
-        <java.version>17</java.version>
+        <!-- the plugin runs on 11, the self test dependencies (JUnit 6, CXF 4.2) need 17 at the least -->
+        <java.version>11</java.version>
+        <java.version.test>17</java.version.test>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.testRelease>${java.version.test}</maven.compiler.testRelease>
         <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
         <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
         <maven.test.skip>true</maven.test.skip>
