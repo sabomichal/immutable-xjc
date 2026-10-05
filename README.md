@@ -221,33 +221,6 @@ wsdl2java {
 ```
 
 ### Release notes
-#### 2.0
-* migrated to JAXB 4.0 (Jakarta namespace mostly)
-* dropped support for java 8 (11 is the target version)
-* added a check for non-null required fields when using a builder
-
-#### 1.7
-* added an option to leave all classes non-final
-
-#### 1.6
-* added an option to set default values in no-arg constructors
-* added an option to generate builder classes that follow the same inheritance hierarchy as their subject classes
-* added an option to generate simple builder names
-* dropped support for java 6
-
-#### 1.5
-* added an option to leave collections mutable
-* added an option to generate public constructors only up to n arguments when builder is used
-
-#### 1.4
-* added an option to generate non-public constructors
-* added an option to generate additional *withAIfNotNull(A a)* builder methods 
-
-#### 1.3
-* builder class copy constructor added
-
-#### 1.2
-* builder class now contains initialised collection fields
-* added generated 'add' methods to incrementally build up the builder collection fields
+See [GitHub releases](https://github.com/sabomichal/immutable-xjc/releases).
 
 Initial idea by Milos Kolencik. If you like it, give it a star, if you don't, write an issue.
